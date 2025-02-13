@@ -10,6 +10,7 @@
     "clean": "rm -rf ./src/artifacts ./target",
     "codegen": "aztec codegen target --outdir src/artifacts",
     "compile": "aztec-nargo compile",
+    "start:pxe": "docker compose -f $(dirname $(dirname $(which aztec)))/docker-compose.sandbox.yml -f docker-compose.override.yml up",
     "test": "yarn test:js && yarn test:nr",
     "test:js": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --runInBand --config jest.integration.config.json",
     "test:nr": "aztec test",
@@ -19,9 +20,9 @@
     "*.ts": "prettier --write -u"
   },
   "dependencies": {
-    "@aztec/accounts": "0.75.0",
-    "@aztec/aztec.js": "0.75.0",
-    "@aztec/noir-contracts.js": "0.75.0",
+    "@aztec/accounts": "0.76.3",
+    "@aztec/aztec.js": "0.76.3",
+    "@aztec/noir-contracts.js": "0.76.3",
     "@types/node": "22.5.1"
   },
   "devDependencies": {
