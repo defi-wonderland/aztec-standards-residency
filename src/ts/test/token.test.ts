@@ -14,8 +14,27 @@ import {
 import { createAccount, getInitialTestAccountsWallets } from '@aztec/accounts/testing';
 import { AMOUNT, createPXE, expectTokenBalances, expectUintNote, logger, setupSandbox, wad } from './utils.js';
 
-export async function deployToken(deployer: AccountWallet) {
-  const contract = await Contract.deploy(deployer, TokenContractArtifact, ['PrivateToken', 'PT', 18]).send().deployed();
+export async function deployTokenWithInitialSupply(deployer: AccountWallet) {
+  const contract = await Contract.deploy(
+    deployer,
+    TokenContractArtifact,
+    ['PrivateToken', 'PT', 18, 0, deployer.getAddress()],
+    'constructor_with_initial_supply',
+  )
+    .send()
+    .deployed();
+  return contract;
+}
+
+export async function deployTokenWithMinter(deployer: AccountWallet) {
+  const contract = await Contract.deploy(
+    deployer,
+    TokenContractArtifact,
+    ['PrivateToken', 'PT', 18, deployer.getAddress()],
+    'constructor_with_minter',
+  )
+    .send()
+    .deployed();
   return contract;
 }
 
@@ -47,20 +66,65 @@ describe('Token - Single PXE', () => {
   });
 
   beforeEach(async () => {
-    token = (await deployToken(alice)) as TokenContract;
+    token = (await deployTokenWithMinter(alice)) as TokenContract;
   });
 
-  it('deploys the contract', async () => {
+  it('deploys the contract with minter', async () => {
     const salt = Fr.random();
     const [deployerWallet] = wallets; // using first account as deployer
 
     const deploymentData = await getContractInstanceFromDeployParams(TokenContractArtifact, {
-      constructorArgs: ['PrivateToken', 'PT', 18],
+      constructorArtifact: 'constructor_with_minter',
+      constructorArgs: ['PrivateToken', 'PT', 18, deployerWallet.getAddress()],
       salt,
       deployer: deployerWallet.getAddress(),
     });
-    const deployer = new ContractDeployer(TokenContractArtifact, deployerWallet);
-    const tx = deployer.deploy('PrivateToken', 'PT', 18).send({ contractAddressSalt: salt });
+    const deployer = new ContractDeployer(TokenContractArtifact, deployerWallet, undefined, 'constructor_with_minter');
+    const tx = deployer
+      .deploy('PrivateToken', 'PT', 18, deployerWallet.getAddress())
+      .send({ contractAddressSalt: salt });
+    const receipt = await tx.getReceipt();
+
+    expect(receipt).toEqual(
+      expect.objectContaining({
+        status: TxStatus.PENDING,
+        error: '',
+      }),
+    );
+
+    const receiptAfterMined = await tx.wait({ wallet: deployerWallet });
+
+    const contractMetadata = await pxe.getContractMetadata(deploymentData.address);
+    expect(contractMetadata).toBeDefined();
+    expect(contractMetadata.isContractPubliclyDeployed).toBeTruthy();
+    expect(receiptAfterMined).toEqual(
+      expect.objectContaining({
+        status: TxStatus.SUCCESS,
+      }),
+    );
+
+    expect(receiptAfterMined.contract.instance.address).toEqual(deploymentData.address);
+  }, 300_000);
+
+  it('deploys the contract with initial supply', async () => {
+    const salt = Fr.random();
+    const [deployerWallet] = wallets; // using first account as deployer
+
+    const deploymentData = await getContractInstanceFromDeployParams(TokenContractArtifact, {
+      constructorArtifact: 'constructor_with_initial_supply',
+      constructorArgs: ['PrivateToken', 'PT', 18, 1, deployerWallet.getAddress()],
+      salt,
+      deployer: deployerWallet.getAddress(),
+    });
+    const deployer = new ContractDeployer(
+      TokenContractArtifact,
+      deployerWallet,
+      undefined,
+      'constructor_with_initial_supply',
+    );
+    const tx = deployer
+      .deploy('PrivateToken', 'PT', 18, 1, deployerWallet.getAddress())
+      .send({ contractAddressSalt: salt });
     const receipt = await tx.getReceipt();
 
     expect(receipt).toEqual(
@@ -423,7 +487,7 @@ describe('Token - Multi PXE', () => {
   });
 
   beforeEach(async () => {
-    token = (await deployToken(alice)) as TokenContract;
+    token = (await deployTokenWithMinter(alice)) as TokenContract;
 
     await bobPXE.registerContract(token);
 

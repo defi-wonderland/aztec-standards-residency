@@ -34,14 +34,34 @@ pub contract Token {
         private_balances: Map<AztecAddress, BalanceSet<Context>, Context>,
         total_supply: PublicMutable<U128, Context>,
         public_balances: Map<AztecAddress, PublicMutable<U128, Context>, Context>,
+        minter: PublicImmutable<AztecAddress, Context>,
     }
 
     #[public]
     #[initializer]
-    fn constructor(name: str<31>, symbol: str<31>, decimals: u8) {
+    fn constructor_with_initial_supply(
+        name: str<31>,
+        symbol: str<31>,
+        decimals: u8,
+        initial_supply: U128,
+        to: AztecAddress,
+    ) {
         storage.name.initialize(FieldCompressedString::from_string(name));
         storage.symbol.initialize(FieldCompressedString::from_string(symbol));
         storage.decimals.initialize(decimals);
+
+        TokenLib::increase_public_balance(storage.public_balances, to, initial_supply);
+        TokenLib::increase_total_supply(storage.total_supply, initial_supply);
+    }
+
+    #[public]
+    #[initializer]
+    fn constructor_with_minter(name: str<31>, symbol: str<31>, decimals: u8, minter: AztecAddress) {
+        storage.name.initialize(FieldCompressedString::from_string(name));
+        storage.symbol.initialize(FieldCompressedString::from_string(symbol));
+        storage.decimals.initialize(decimals);
+
+        storage.minter.initialize(minter);
     }
 
     /** ==========================================================
@@ -272,6 +292,9 @@ pub contract Token {
         to: AztecAddress,
         amount: U128,
     ) {
+        let minter = storage.minter.read();
+        assert(minter.eq(context.msg_sender()), "caller is not minter");
+
         // We prepare the partial note to which we'll "send" the minted amount.
         let hiding_point_slot = TokenLib::prepare_transfer_public_to_private(
             &mut context,
@@ -281,18 +304,24 @@ pub contract Token {
         );
 
         Token::at(context.this_address())
-            .finalize_mint_to_private(amount, hiding_point_slot)
+            ._finalize_mint_to_private_unsafe(amount, hiding_point_slot)
             .enqueue(&mut context);
     }
 
     #[public]
     fn mint_to_public(to: AztecAddress, amount: U128) {
+        let minter = storage.minter.read();
+        assert(minter.eq(context.msg_sender()), "caller is not minter");
+
         TokenLib::increase_public_balance(storage.public_balances, to, amount);
         TokenLib::increase_total_supply(storage.total_supply, amount);
     }
 
     #[public]
     fn finalize_mint_to_private(amount: U128, hiding_point_slot: Field) {
+        let minter = storage.minter.read();
+        assert(minter.eq(context.msg_sender()), "caller is not minter");
+
         TokenLib::finalize_mint_to_private(
             &mut context,
             storage.total_supply,
@@ -303,11 +332,7 @@ pub contract Token {
 
     #[public]
     #[internal]
-    fn _finalize_mint_to_private_unsafe(
-        from: AztecAddress,
-        amount: U128,
-        hiding_point_slot: Field,
-    ) {
+    fn _finalize_mint_to_private_unsafe(amount: U128, hiding_point_slot: Field) {
         TokenLib::finalize_mint_to_private(
             &mut context,
             storage.total_supply,
@@ -316,41 +341,36 @@ pub contract Token {
         );
     }
 
-    // TODO(#29): implement burnable
-    // /** ==========================================================
-    //  * ======================= BURNABLE ==========================
-    //  * ======================================================== */
+    /** ==========================================================
+     * ======================= BURNABLE ==========================
+     * ======================================================== */
 
-    // #[private]
-    // fn burn_private(from: AztecAddress, amount: U128, nonce: Field) {
-    //     _validate_from_private(from, nonce, &mut context);
+    #[private]
+    fn burn_private(from: AztecAddress, amount: U128, nonce: Field) {
+        AuthLib::validate_from_private(&mut context, from, nonce);
 
-    //     storage.private_balances.at(from).sub(from, amount).emit(encode_and_encrypt_note(
-    //         &mut context,
-    //         from,
-    //         from,
-    //     ));
-    //     let self = Token::at(context.this_address());
-    //     self._reduce_total_supply(amount).enqueue(&mut context);
-    // }
+        TokenLib::decrease_private_balance(
+            &mut context,
+            storage.private_balances,
+            from,
+            amount,
+            INITIAL_TRANSFER_CALL_MAX_NOTES,
+        )
+            .emit(encode_and_encrypt_note(&mut context, from, from));
 
-    // #[public]
-    // fn burn_public(from: AztecAddress, amount: U128, nonce: Field) {
-    //     if (!from.eq(context.msg_sender())) {
-    //         assert_current_call_valid_authwit_public(&mut context, from);
-    //     } else {
-    //         assert(nonce == 0, "invalid nonce");
-    //     }
-    //     _decrease_public_balance(storage, from, amount);
-    //     let self = Token::at(context.this_address());
-    //     self._reduce_total_supply(amount).call(&mut context);
-    // }
+        Token::at(context.this_address()).decrease_total_supply(amount).enqueue(&mut context);
+    }
 
-    // #[public]
-    // #[internal]
-    // fn _reduce_total_supply(amount: U128) {
-    //     // Only to be called from burn.
-    //     let new_supply = storage.total_supply.read().sub(amount);
-    //     storage.total_supply.write(new_supply);
-    // }
+    #[public]
+    fn burn_public(from: AztecAddress, amount: U128, nonce: Field) {
+        AuthLib::validate_from_public(&mut context, from, nonce);
+        TokenLib::decrease_public_balance(storage.public_balances, from, amount);
+        TokenLib::decrease_total_supply(storage.total_supply, amount);
+    }
+
+    #[public]
+    #[internal]
+    fn decrease_total_supply(amount: U128) {
+        TokenLib::decrease_total_supply(storage.total_supply, amount);
+    }
 }

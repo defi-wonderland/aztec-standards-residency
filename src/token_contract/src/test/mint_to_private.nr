@@ -3,8 +3,10 @@ use crate::{test::utils, Token};
 #[test]
 unconstrained fn mint_to_private_success() {
     // Setup without account contracts. We are not using authwits here, so dummy accounts are enough
-    let (env, token_contract_address, owner, _) = utils::setup(/* with_account_contracts */ false);
+    let (env, token_contract_address, owner, _, minter) =
+        utils::setup_with_minter(/* with_account_contracts */ false);
 
+    env.impersonate(minter);
     let mint_amount = U128::from_integer(10_000);
     Token::at(token_contract_address).mint_to_private(owner, owner, mint_amount).call(
         &mut env.private(),
@@ -21,8 +23,8 @@ unconstrained fn mint_to_private_success() {
 #[test]
 unconstrained fn mint_to_private_failures() {
     // Setup without account contracts. We are not using authwits here, so dummy accounts are enough
-    let (env, token_contract_address, owner, recipient) =
-        utils::setup(/* with_account_contracts */ false);
+    let (env, token_contract_address, owner, recipient, minter) =
+        utils::setup_with_minter(/* with_account_contracts */ false);
 
     // As non-minter
     let mint_amount = U128::from_integer(10_000);
@@ -33,7 +35,7 @@ unconstrained fn mint_to_private_failures() {
 
     utils::check_private_balance(token_contract_address, owner, U128::zero());
 
-    env.impersonate(owner);
+    env.impersonate(minter);
 
     // Overflow recipient
 
