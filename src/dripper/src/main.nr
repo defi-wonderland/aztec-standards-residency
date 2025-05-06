@@ -3,11 +3,15 @@ use dep::aztec::macros::aztec;
 #[aztec]
 pub contract Dripper {
     use dep::aztec::{
-        macros::{functions::{private, public}, storage::storage},
+        macros::{functions::{private, public, initializer}, storage::storage},
     };
     use dep::aztec::prelude::{AztecAddress};
     use uint_note::uint_note::{PartialUintNote};
     use token::Token;
+
+    #[private]
+    #[initializer]
+    fn constructor() {}
 
     #[public]
     fn drip_to_public(token_address: AztecAddress, amount: u64) {
