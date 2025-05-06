@@ -18,7 +18,7 @@ export async function deployTokenWithInitialSupply(deployer: AccountWallet) {
   const contract = await Contract.deploy(
     deployer,
     TokenContractArtifact,
-    ['PrivateToken', 'PT', 18, 0, deployer.getAddress()],
+    ['PrivateToken', 'PT', 18, 0, deployer.getAddress(), deployer.getAddress()],
     'constructor_with_initial_supply',
   )
     .send()
@@ -30,7 +30,7 @@ export async function deployTokenWithMinter(deployer: AccountWallet) {
   const contract = await Contract.deploy(
     deployer,
     TokenContractArtifact,
-    ['PrivateToken', 'PT', 18, deployer.getAddress()],
+    ['PrivateToken', 'PT', 18, deployer.getAddress(), deployer.getAddress()],
     'constructor_with_minter',
   )
     .send()

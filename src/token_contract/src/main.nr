@@ -64,34 +64,10 @@ pub contract Token {
     /// @param decimals The number of decimals of the token
     /// @param initial_supply The initial supply of the token
     /// @param to The address to mint the initial supply to
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
     fn constructor_with_initial_supply(
-        name: str<31>,
-        symbol: str<31>,
-        decimals: u8,
-        initial_supply: u128,
-        to: AztecAddress,
-    ) {
-        storage.name.initialize(FieldCompressedString::from_string(name));
-        storage.symbol.initialize(FieldCompressedString::from_string(symbol));
-        storage.decimals.initialize(decimals);
-
-        _increase_public_balance(storage.public_balances, to, initial_supply);
-        _increase_total_supply(storage.total_supply, initial_supply);
-    }
-
-    /// @notice Initializes the token upgradeable with an initial supply
-    /// @dev Since this constructor doesn't set a minter address the mint functions will be disabled
-    /// @param name The name of the token
-    /// @param symbol The symbol of the token
-    /// @param decimals The number of decimals of the token
-    /// @param initial_supply The initial supply of the token
-    /// @param to The address to mint the initial supply to
-    /// @param upgrade_authority The address of the upgrade authority
-    #[public]
-    #[initializer]
-    fn constructor_with_initial_supply_upgradeable(
         name: str<31>,
         symbol: str<31>,
         decimals: u8,
@@ -114,25 +90,10 @@ pub contract Token {
     /// @param symbol The symbol of the token
     /// @param decimals The number of decimals of the token
     /// @param minter The address of the minter
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
-    fn constructor_with_minter(name: str<31>, symbol: str<31>, decimals: u8, minter: AztecAddress) {
-        storage.name.initialize(FieldCompressedString::from_string(name));
-        storage.symbol.initialize(FieldCompressedString::from_string(symbol));
-        storage.decimals.initialize(decimals);
-
-        storage.minter.initialize(minter);
-    }
-
-    /// @notice Initializes the token with a minter
-    /// @param name The name of the token
-    /// @param symbol The symbol of the token
-    /// @param decimals The number of decimals of the token
-    /// @param minter The address of the minter
-    /// @param upgrade_authority The address of the upgrade authority
-    #[public]
-    #[initializer]
-    fn constructor_with_minter_upgradeable(
+    fn constructor_with_minter(
         name: str<31>,
         symbol: str<31>,
         decimals: u8,
@@ -144,7 +105,6 @@ pub contract Token {
         storage.decimals.initialize(decimals);
 
         storage.minter.initialize(minter);
-
         storage.upgrade_authority.initialize(upgrade_authority);
     }
 
@@ -705,12 +665,16 @@ pub contract Token {
      * ===================  UPGRADEABLE  =========================
      * ======================================================== */
 
+    /// @notice Upgrades the contract to a new contract class id
+    /// @dev The upgrade authority must be set
+    /// @dev The upgrade will only be effective after the upgrade delay has passed
+    /// @param new_contract_class_id The new contract class id
     #[public]
     fn upgrade_contract(new_contract_class_id: Field) {
-        assert(
-            context.msg_sender().eq(storage.upgrade_authority.read()),
-            "caller is not upgrade authority",
-        );
+        let upgrade_authority = storage.upgrade_authority.read();
+
+        assert(!upgrade_authority.eq(AztecAddress::zero()), "upgrade authority not set");
+        assert(context.msg_sender().eq(upgrade_authority), "caller is not upgrade authority");
 
         ContractInstanceDeployer::at(DEPLOYER_CONTRACT_ADDRESS)
             .update(ContractClassId::from_field(new_contract_class_id))
