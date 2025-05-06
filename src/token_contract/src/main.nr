@@ -12,7 +12,10 @@ pub contract Token {
             storage::storage,
         },
         prelude::{AztecAddress, Map, PublicContext, PublicImmutable, PublicMutable},
-        protocol_types::{constants::DEPLOYER_CONTRACT_ADDRESS, contract_class_id::ContractClassId},
+        protocol_types::{
+            constants::DEPLOYER_CONTRACT_ADDRESS, contract_class_id::ContractClassId,
+            traits::FromField,
+        },
     };
     // authorized witness library
     use authwit::auth::{
@@ -703,15 +706,15 @@ pub contract Token {
      * ======================================================== */
 
     #[public]
-    fn upgrade_contract(new_contract_class_id: ContractClassId) {
+    fn upgrade_contract(new_contract_class_id: Field) {
         assert(
             context.msg_sender().eq(storage.upgrade_authority.read()),
             "caller is not upgrade authority",
         );
 
-        ContractInstanceDeployer::at(DEPLOYER_CONTRACT_ADDRESS).update(new_contract_class_id).call(
-            &mut context,
-        );
+        ContractInstanceDeployer::at(DEPLOYER_CONTRACT_ADDRESS)
+            .update(ContractClassId::from_field(new_contract_class_id))
+            .call(&mut context);
     }
 
     /** ==========================================================
