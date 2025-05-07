@@ -6,17 +6,15 @@ use aztec::macros::aztec;
 pub contract Token {
     // aztec library
     use aztec::{
-        context::{gas::GasOpts, PrivateContext},
+        context::PrivateContext,
         macros::{
             functions::{initializer, internal, private, public, utility, view},
             storage::storage,
         },
         prelude::{AztecAddress, Map, PublicContext, PublicImmutable, PublicMutable},
         protocol_types::{
-            abis::function_selector::FunctionSelector,
-            constants::DEPLOYER_CONTRACT_ADDRESS,
-            contract_class_id::ContractClassId,
-            traits::{FromField, ToField},
+            constants::DEPLOYER_CONTRACT_ADDRESS, contract_class_id::ContractClassId,
+            traits::FromField,
         },
     };
     // authorized witness library
