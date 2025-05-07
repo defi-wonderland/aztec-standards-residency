@@ -93,7 +93,7 @@ impl UintNote {
         // so a malicious sender could use non-random values to make the note less private. But they already know
         // the full note pre-image anyway, and so the recipient already trusts them to not disclose this
         // information. We can therefore assume that the sender will cooperate in the random value generation.
-        let randomness = unsafe { random() };
+        let randomness = 0; // unsafe { random() };
         Self { value, owner, randomness }
     }
 
@@ -125,7 +125,7 @@ impl UintNote {
         // so a malicious sender could use non-random values to make the note less private. But they already know
         // the full note pre-image anyway, and so the recipient already trusts them to not disclose this
         // information. We can therefore assume that the sender will cooperate in the random value generation.
-        let randomness = unsafe { random() };
+        let randomness = 0; // unsafe { random() };
 
         // We create a commitment to the private data, which we then use to construct the log we send to the recipient.
         let commitment = UintPartialNotePrivateContent { owner, randomness }
