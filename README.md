@@ -3,8 +3,32 @@
 Aztec Standards is a compilation of reusable, standardized contracts for the Aztec Network. It provides a foundation of token primitives and utilities supporting both private and public operations, enabling developers to build privacy-preserving applications.
 
 ## Table of Contents
+- [Dripper](#dripper)
 - [Token Contract](#token-contract)
 - [Future Contracts](#future-contracts)
+
+## Dripper
+The `Dripper` contract provides a simple faucet for minting tokens into private or public balances. Anyone can invoke the functions below to request tokens for testing or development.
+
+### Public Functions
+```rust
+/// @notice Mints tokens into the public balance of the caller
+/// @dev Caller obtains `amount` tokens in their public balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[public]
+fn drip_to_public(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
+
+### Private Functions
+```rust
+/// @notice Mints tokens into the private balance of the caller
+/// @dev Caller obtains `amount` tokens in their private balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[private]
+fn drip_to_private(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
 
 ## Token Contract
 The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec’s confidentiality features.
@@ -21,6 +45,7 @@ Feel free to review and discuss the specification there.
 - `public_balances: Map<AztecAddress, u128>`: Public balances per account.
 - `total_supply: u128`: Total token supply.
 - `minter: AztecAddress`: Authorized minter address (if set).
+- `upgrade_authority: AztecAddress`: Address allowed to perform contract upgrades (zero address if not upgradeable).
 
 ### Initializer Functions
 ```rust
@@ -31,6 +56,7 @@ Feel free to review and discuss the specification there.
 /// @param decimals The number of decimals of the token
 /// @param initial_supply The initial supply of the token
 /// @param to The address to mint the initial supply to
+/// @param upgrade_authority The address of the upgrade authority (zero if not upgradeable)
 #[public]
 #[initializer]
 fn constructor_with_initial_supply(
@@ -39,6 +65,7 @@ fn constructor_with_initial_supply(
     decimals: u8,
     initial_supply: u128,
     to: AztecAddress,
+    upgrade_authority: AztecAddress,
 ) { /* ... */ }
 ```
 
@@ -48,6 +75,7 @@ fn constructor_with_initial_supply(
 /// @param symbol The symbol of the token
 /// @param decimals The number of decimals of the token
 /// @param minter The address of the minter
+/// @param upgrade_authority The address of the upgrade authority (zero if not upgradeable)
 #[public]
 #[initializer]
 fn constructor_with_minter(
@@ -55,6 +83,7 @@ fn constructor_with_minter(
     symbol: str<31>,
     decimals: u8,
     minter: AztecAddress,
+    upgrade_authority: AztecAddress,
 ) { /* ... */ }
 ```
 
@@ -182,6 +211,15 @@ fn transfer_public_to_public(
     amount: u128,
     nonce: Field,
 ) { /* ... */ }
+
+### Upgradeable
+```rust
+/// @notice Upgrades the contract to a new contract class id
+/// @dev Only callable by the `upgrade_authority` and effective after the upgrade delay
+/// @param new_contract_class_id The new contract class id
+#[public]
+fn upgrade_contract(new_contract_class_id: Field) { /* ... */ }
+```
 
 /// @notice Finalizes a transfer of token `amount` from public balance of `from` to a commitment of `to`
 /// @dev The transfer must be prepared by calling `initialize_transfer_commitment` first and the resulting
