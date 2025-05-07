@@ -73,6 +73,8 @@ pub unconstrained fn deploy_token_with_initial_supply(
         18,
         initial_supply,
         to,
+        AztecAddress::zero(),
+        AztecAddress::zero(),
     );
     let token_contract = env.deploy("./@token_contract", "Token").with_public_void_initializer(
         initializer_call_interface,
@@ -96,6 +98,8 @@ pub unconstrained fn deploy_token_with_minter(
         "TT00000000000000000000000000000",
         18,
         minter,
+        AztecAddress::zero(),
+        AztecAddress::zero(),
     );
     let token_contract = env.deploy("./@token_contract", "Token").with_public_void_initializer(
         initializer_call_interface,
