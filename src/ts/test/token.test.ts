@@ -81,7 +81,7 @@ describe('Token - Single PXE', () => {
     });
     const deployer = new ContractDeployer(TokenContractArtifact, deployerWallet, undefined, 'constructor_with_minter');
     const tx = deployer
-      .deploy('PrivateToken', 'PT', 18, deployerWallet.getAddress())
+      .deploy('PrivateToken', 'PT', 18, deployerWallet.getAddress(), deployerWallet.getAddress())
       .send({ contractAddressSalt: salt });
     const receipt = await tx.getReceipt();
 
@@ -112,7 +112,7 @@ describe('Token - Single PXE', () => {
 
     const deploymentData = await getContractInstanceFromDeployParams(TokenContractArtifact, {
       constructorArtifact: 'constructor_with_initial_supply',
-      constructorArgs: ['PrivateToken', 'PT', 18, 1, deployerWallet.getAddress()],
+      constructorArgs: ['PrivateToken', 'PT', 18, 1, deployerWallet.getAddress(), deployerWallet.getAddress()],
       salt,
       deployer: deployerWallet.getAddress(),
     });
