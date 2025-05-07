@@ -6,15 +6,21 @@ jobs:
   export:
     name: Generate Canary Release
     environment: prod
-
     runs-on: ubuntu-latest
 
     env:
       PROJECT_NAME: '@defi-wonderland/aztec-standards'
       AZTEC_VERSION: 0.85.0-alpha-testnet.7
+
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          cache: "yarn"
 
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
@@ -31,9 +37,6 @@ jobs:
         run: |
           VERSION=${AZTEC_VERSION} aztec-up
       
-      - name: Install project dependencies
-        run: yarn
-
       - name: Compile
         run: yarn compile
 
@@ -42,6 +45,10 @@ jobs:
 
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
+
+      - name: Change package name in package.json
+        run: |
+          jq '.name = "${{ env.PROJECT_NAME }}"' package.json > tmp.json && mv tmp.json package.json
 
       - name: Prepare files for release
         run: |
