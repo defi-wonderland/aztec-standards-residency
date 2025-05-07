@@ -46,10 +46,12 @@ jobs:
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
 
+      # TODO: There must a be a better way to prepare all these files and directories
       - name: Prepare files for release
         run: |
           mkdir -p export/${{ env.PROJECT_NAME }}
-          cp -r src/artifacts export/${{ env.PROJECT_NAME }}/
+          mkdir -p export/${{ env.PROJECT_NAME }}/src/
+          cp -r src/artifacts export/${{ env.PROJECT_NAME }}/src/
           cp -r target export/${{ env.PROJECT_NAME }}/
           cp package.json export/${{ env.PROJECT_NAME }}/
           cp README.md export/${{ env.PROJECT_NAME }}/
