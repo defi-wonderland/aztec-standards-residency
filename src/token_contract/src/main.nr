@@ -12,6 +12,10 @@ pub contract Token {
             storage::storage,
         },
         prelude::{AztecAddress, Map, PublicContext, PublicImmutable, PublicMutable},
+        protocol_types::{
+            constants::DEPLOYER_CONTRACT_ADDRESS, contract_class_id::ContractClassId,
+            traits::FromField,
+        },
     };
     // authorized witness library
     use authwit::auth::{
@@ -25,6 +29,9 @@ pub contract Token {
     use aztec::messages::logs::note::encode_and_encrypt_note;
     // balance library
     use balance_set::balance_set::BalanceSet;
+
+    // contract instance deployer
+    use contract_instance_deployer::ContractInstanceDeployer;
 
     // gas-optimized max notes for initial transfer call
     global INITIAL_TRANSFER_CALL_MAX_NOTES: u32 = 2;
@@ -47,6 +54,7 @@ pub contract Token {
         total_supply: PublicMutable<u128, Context>,
         public_balances: Map<AztecAddress, PublicMutable<u128, Context>, Context>,
         minter: PublicImmutable<AztecAddress, Context>,
+        upgrade_authority: PublicImmutable<AztecAddress, Context>,
     }
 
     /// @notice Initializes the token with an initial supply
@@ -56,6 +64,7 @@ pub contract Token {
     /// @param decimals The number of decimals of the token
     /// @param initial_supply The initial supply of the token
     /// @param to The address to mint the initial supply to
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
     fn constructor_with_initial_supply(
@@ -64,6 +73,7 @@ pub contract Token {
         decimals: u8,
         initial_supply: u128,
         to: AztecAddress,
+        upgrade_authority: AztecAddress,
     ) {
         storage.name.initialize(FieldCompressedString::from_string(name));
         storage.symbol.initialize(FieldCompressedString::from_string(symbol));
@@ -71,6 +81,8 @@ pub contract Token {
 
         _increase_public_balance(storage.public_balances, to, initial_supply);
         _increase_total_supply(storage.total_supply, initial_supply);
+
+        storage.upgrade_authority.initialize(upgrade_authority);
     }
 
     /// @notice Initializes the token with a minter
@@ -78,14 +90,22 @@ pub contract Token {
     /// @param symbol The symbol of the token
     /// @param decimals The number of decimals of the token
     /// @param minter The address of the minter
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
-    fn constructor_with_minter(name: str<31>, symbol: str<31>, decimals: u8, minter: AztecAddress) {
+    fn constructor_with_minter(
+        name: str<31>,
+        symbol: str<31>,
+        decimals: u8,
+        minter: AztecAddress,
+        upgrade_authority: AztecAddress,
+    ) {
         storage.name.initialize(FieldCompressedString::from_string(name));
         storage.symbol.initialize(FieldCompressedString::from_string(symbol));
         storage.decimals.initialize(decimals);
 
         storage.minter.initialize(minter);
+        storage.upgrade_authority.initialize(upgrade_authority);
     }
 
     /** ==========================================================
@@ -639,6 +659,26 @@ pub contract Token {
             context,
         );
         commitment
+    }
+
+    /** ==========================================================
+     * ===================  UPGRADEABLE  =========================
+     * ======================================================== */
+
+    /// @notice Upgrades the contract to a new contract class id
+    /// @dev The upgrade authority must be set
+    /// @dev The upgrade will only be effective after the upgrade delay has passed
+    /// @param new_contract_class_id The new contract class id
+    #[public]
+    fn upgrade_contract(new_contract_class_id: Field) {
+        let upgrade_authority = storage.upgrade_authority.read();
+
+        assert(!upgrade_authority.eq(AztecAddress::zero()), "upgrade authority not set");
+        assert(context.msg_sender().eq(upgrade_authority), "caller is not upgrade authority");
+
+        ContractInstanceDeployer::at(DEPLOYER_CONTRACT_ADDRESS)
+            .update(ContractClassId::from_field(new_contract_class_id))
+            .call(&mut context);
     }
 
     /** ==========================================================
