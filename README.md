@@ -9,6 +9,10 @@ Aztec Standards is a compilation of reusable, standardized contracts for the Azt
 ## Token Contract
 The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec’s confidentiality features.
 
+### AIP-20: Aztec Token Standard
+We published the AIP-20 Aztec Token Standard in our forum: https://forum.aztec.network/t/request-for-comments-aip-20-aztec-token-standard/7737
+Feel free to review and discuss the specification there.
+
 ### Storage Fields
 - `name: str<31>`: Token name (compressed).
 - `symbol: str<31>`: Token symbol (compressed).
