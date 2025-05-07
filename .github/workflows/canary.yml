@@ -46,10 +46,6 @@ jobs:
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
 
-      - name: Change package name in package.json
-        run: |
-          jq '.name = "${{ env.PROJECT_NAME }}"' package.json > tmp.json && mv tmp.json package.json
-
       - name: Prepare files for release
         run: |
           mkdir -p export/${{ env.PROJECT_NAME }}
