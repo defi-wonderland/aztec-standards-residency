@@ -1,0 +1,63 @@
+name: Canary Release
+
+on: workflow_dispatch
+
+jobs:
+  export:
+    name: Generate Canary Release
+    environment: prod
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_NAME: '@defi-wonderland/aztec-standards'
+      AZTEC_VERSION: 0.85.0-alpha-testnet.7
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          registry-url: "https://registry.npmjs.org"
+          cache: "yarn"
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Install Aztec CLI
+        run: |
+          curl -s https://install.aztec.network > tmp.sh
+          bash tmp.sh <<< yes "yes"
+
+      - name: Update path
+        run: echo "/home/runner/.aztec/bin" >> $GITHUB_PATH
+
+      - name: Set Aztec version
+        run: |
+          VERSION=${AZTEC_VERSION} aztec-up
+      
+      - name: Compile
+        run: yarn compile
+
+      - name: Codegen
+        run: yarn codegen
+
+      - name: Update version
+        run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
+
+      # TODO: There must a be a better way to prepare all these files and directories
+      - name: Prepare files for release
+        run: |
+          mkdir -p export/${{ env.PROJECT_NAME }}
+          mkdir -p export/${{ env.PROJECT_NAME }}/src/
+          cp -r src/artifacts export/${{ env.PROJECT_NAME }}/src/
+          cp -r target export/${{ env.PROJECT_NAME }}/
+          cp package.json export/${{ env.PROJECT_NAME }}/
+          cp README.md export/${{ env.PROJECT_NAME }}/
+          cp LICENSE export/${{ env.PROJECT_NAME }}/
+
+      - name: Publish to NPM
+        run: cd export/${{ env.PROJECT_NAME }} && npm publish --access public --tag canary
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
