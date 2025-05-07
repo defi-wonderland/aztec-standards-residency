@@ -3,8 +3,32 @@
 Aztec Standards is a compilation of reusable, standardized contracts for the Aztec Network. It provides a foundation of token primitives and utilities supporting both private and public operations, enabling developers to build privacy-preserving applications.
 
 ## Table of Contents
+- [Dripper](#dripper)
 - [Token Contract](#token-contract)
 - [Future Contracts](#future-contracts)
+
+## Dripper
+The `Dripper` contract provides a simple faucet for minting tokens into private or public balances. Anyone can invoke the functions below to request tokens for testing or development.
+
+### Public Functions
+```rust
+/// @notice Mints tokens into the public balance of the caller
+/// @dev Caller obtains `amount` tokens in their public balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[public]
+fn drip_to_public(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
+
+### Private Functions
+```rust
+/// @notice Mints tokens into the private balance of the caller
+/// @dev Caller obtains `amount` tokens in their private balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[private]
+fn drip_to_private(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
 
 ## Token Contract
 The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec’s confidentiality features.
