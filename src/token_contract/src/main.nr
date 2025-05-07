@@ -35,6 +35,9 @@ pub contract Token {
     // contract instance deployer
     use contract_instance_deployer::ContractInstanceDeployer;
 
+    // compliance check
+    use compliance_check::ComplianceCheck;
+
     // gas-optimized max notes for initial transfer call
     global INITIAL_TRANSFER_CALL_MAX_NOTES: u32 = 2;
     // max notes transfer for recursive transfer call if initial max notes are exceeded
@@ -774,10 +777,8 @@ pub contract Token {
         amount: u128,
     ) {
         if (!transfer_authority.eq(AztecAddress::zero())) {
-            context.call_private_function(
-                transfer_authority,
-                FunctionSelector::from_signature("authorize_transfer_private((Field),u128)"),
-                [from.to_field(), amount.to_field()],
+            ComplianceCheck::at(transfer_authority).authorize_transfer_private(from, amount).call(
+                context,
             );
         }
     }
@@ -790,11 +791,8 @@ pub contract Token {
         amount: u128,
     ) {
         if (!transfer_authority.eq(AztecAddress::zero())) {
-            context.call_public_function(
-                transfer_authority,
-                FunctionSelector::from_signature("authorize_transfer_public((Field),u128)"),
-                [from.to_field(), amount.to_field()],
-                GasOpts::default(),
+            ComplianceCheck::at(transfer_authority).authorize_transfer_public(from, amount).call(
+                context,
             );
         }
     }
