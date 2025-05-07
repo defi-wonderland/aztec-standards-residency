@@ -7,7 +7,6 @@
   },
   "author": "Wonderland",
   "license": "MIT",
-  "private": true,
   "type": "module",
   "scripts": {
     "clean": "rm -rf ./src/artifacts ./target",
