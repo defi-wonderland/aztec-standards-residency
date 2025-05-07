@@ -33,6 +33,9 @@ pub contract Token {
     // contract instance deployer
     use contract_instance_deployer::ContractInstanceDeployer;
 
+    // compliance check
+    use compliance_check::ComplianceCheck;
+
     // gas-optimized max notes for initial transfer call
     global INITIAL_TRANSFER_CALL_MAX_NOTES: u32 = 2;
     // max notes transfer for recursive transfer call if initial max notes are exceeded
@@ -55,6 +58,7 @@ pub contract Token {
         public_balances: Map<AztecAddress, PublicMutable<u128, Context>, Context>,
         minter: PublicImmutable<AztecAddress, Context>,
         upgrade_authority: PublicImmutable<AztecAddress, Context>,
+        transfer_authority: PublicImmutable<AztecAddress, Context>,
     }
 
     /// @notice Initializes the token with an initial supply
@@ -74,6 +78,7 @@ pub contract Token {
         initial_supply: u128,
         to: AztecAddress,
         upgrade_authority: AztecAddress,
+        transfer_authority: AztecAddress,
     ) {
         storage.name.initialize(FieldCompressedString::from_string(name));
         storage.symbol.initialize(FieldCompressedString::from_string(symbol));
@@ -83,6 +88,7 @@ pub contract Token {
         _increase_total_supply(storage.total_supply, initial_supply);
 
         storage.upgrade_authority.initialize(upgrade_authority);
+        storage.transfer_authority.initialize(transfer_authority);
     }
 
     /// @notice Initializes the token with a minter
@@ -99,6 +105,7 @@ pub contract Token {
         decimals: u8,
         minter: AztecAddress,
         upgrade_authority: AztecAddress,
+        transfer_authority: AztecAddress,
     ) {
         storage.name.initialize(FieldCompressedString::from_string(name));
         storage.symbol.initialize(FieldCompressedString::from_string(symbol));
@@ -106,6 +113,7 @@ pub contract Token {
 
         storage.minter.initialize(minter);
         storage.upgrade_authority.initialize(upgrade_authority);
+        storage.transfer_authority.initialize(transfer_authority);
     }
 
     /** ==========================================================
@@ -125,6 +133,12 @@ pub contract Token {
         amount: u128,
         nonce: Field,
     ) {
+        _authorize_transfer_private(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_private(&mut context, from, nonce);
 
         _decrease_private_balance(
@@ -154,6 +168,12 @@ pub contract Token {
         amount: u128,
         nonce: Field,
     ) -> PartialUintNote {
+        _authorize_transfer_private(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_private(&mut context, from, nonce);
 
         _decrease_private_balance(
@@ -186,6 +206,12 @@ pub contract Token {
         amount: u128,
         nonce: Field,
     ) {
+        _authorize_transfer_private(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_private(&mut context, from, nonce);
 
         _decrease_private_balance(
@@ -212,6 +238,12 @@ pub contract Token {
         commitment: PartialUintNote,
         nonce: Field,
     ) {
+        _authorize_transfer_private(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_private(&mut context, from, nonce);
 
         _decrease_private_balance(
@@ -240,6 +272,12 @@ pub contract Token {
         amount: u128,
         nonce: Field,
     ) {
+        _authorize_transfer_private(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_private(&mut context, from, nonce);
 
         Token::at(context.this_address()).decrease_public_balance_internal(from, amount).enqueue(
@@ -288,6 +326,12 @@ pub contract Token {
     /// @param nonce The nonce used for authwitness
     #[public]
     fn transfer_public_to_public(from: AztecAddress, to: AztecAddress, amount: u128, nonce: Field) {
+        _authorize_transfer_public(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_public(&mut context, from, nonce);
 
         _decrease_public_balance(storage.public_balances, from, amount);
@@ -308,6 +352,12 @@ pub contract Token {
         commitment: PartialUintNote,
         nonce: Field,
     ) {
+        _authorize_transfer_public(
+            &mut context,
+            storage.transfer_authority.read(),
+            from,
+            amount,
+        );
         _validate_from_public(&mut context, from, nonce);
 
         _decrease_public_balance(storage.public_balances, from, amount);
@@ -716,4 +766,33 @@ pub contract Token {
             assert(nonce == 0, "invalid nonce");
         }
     }
+
+    #[contract_library_method]
+    fn _authorize_transfer_private(
+        context: &mut PrivateContext,
+        transfer_authority: AztecAddress,
+        from: AztecAddress,
+        amount: u128,
+    ) {
+        if (!transfer_authority.eq(AztecAddress::zero())) {
+            ComplianceCheck::at(transfer_authority)
+                .authorize_transfer_private(context.msg_sender(), from, amount)
+                .call(context);
+        }
+    }
+
+    #[contract_library_method]
+    unconstrained fn _authorize_transfer_public(
+        context: &mut PublicContext,
+        transfer_authority: AztecAddress,
+        from: AztecAddress,
+        amount: u128,
+    ) {
+        if (!transfer_authority.eq(AztecAddress::zero())) {
+            ComplianceCheck::at(transfer_authority)
+                .authorize_transfer_public(context.msg_sender(), from, amount)
+                .call(context);
+        }
+    }
+
 }

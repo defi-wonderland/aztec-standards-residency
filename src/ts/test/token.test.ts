@@ -10,6 +10,7 @@ import {
   Contract,
   AccountWalletWithSecretKey,
   IntentAction,
+  AztecAddress,
 } from '@aztec/aztec.js';
 import { getInitialTestAccountsWallets } from '@aztec/accounts/testing';
 import { AMOUNT, createPXE, expectTokenBalances, expectUintNote, setupSandbox, wad } from './utils.js';
@@ -18,7 +19,7 @@ export async function deployTokenWithInitialSupply(deployer: AccountWallet) {
   const contract = await Contract.deploy(
     deployer,
     TokenContractArtifact,
-    ['PrivateToken', 'PT', 18, 0, deployer.getAddress(), deployer.getAddress()],
+    ['PrivateToken', 'PT', 18, 0, deployer.getAddress(), deployer.getAddress(), AztecAddress.ZERO],
     'constructor_with_initial_supply',
   )
     .send()
@@ -30,7 +31,7 @@ export async function deployTokenWithMinter(deployer: AccountWallet) {
   const contract = await Contract.deploy(
     deployer,
     TokenContractArtifact,
-    ['PrivateToken', 'PT', 18, deployer.getAddress(), deployer.getAddress()],
+    ['PrivateToken', 'PT', 18, deployer.getAddress(), deployer.getAddress(), AztecAddress.ZERO],
     'constructor_with_minter',
   )
     .send()
@@ -75,7 +76,7 @@ describe('Token - Single PXE', () => {
 
     const deploymentData = await getContractInstanceFromDeployParams(TokenContractArtifact, {
       constructorArtifact: 'constructor_with_minter',
-      constructorArgs: ['PrivateToken', 'PT', 18, deployerWallet.getAddress(), deployerWallet.getAddress()],
+      constructorArgs: ['PrivateToken', 'PT', 18, deployerWallet.getAddress(), deployerWallet.getAddress(), AztecAddress.ZERO],
       salt,
       deployer: deployerWallet.getAddress(),
     });
@@ -112,7 +113,7 @@ describe('Token - Single PXE', () => {
 
     const deploymentData = await getContractInstanceFromDeployParams(TokenContractArtifact, {
       constructorArtifact: 'constructor_with_initial_supply',
-      constructorArgs: ['PrivateToken', 'PT', 18, 1, deployerWallet.getAddress(), deployerWallet.getAddress()],
+      constructorArgs: ['PrivateToken', 'PT', 18, 1, deployerWallet.getAddress(), deployerWallet.getAddress(), AztecAddress.ZERO],
       salt,
       deployer: deployerWallet.getAddress(),
     });
