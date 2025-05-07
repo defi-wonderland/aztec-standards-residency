@@ -32,6 +32,9 @@ pub contract Token {
     // balance library
     use balance_set::balance_set::BalanceSet;
 
+    // contract instance deployer
+    use contract_instance_deployer::ContractInstanceDeployer;
+
     // gas-optimized max notes for initial transfer call
     global INITIAL_TRANSFER_CALL_MAX_NOTES: u32 = 2;
     // max notes transfer for recursive transfer call if initial max notes are exceeded
@@ -64,6 +67,7 @@ pub contract Token {
     /// @param decimals The number of decimals of the token
     /// @param initial_supply The initial supply of the token
     /// @param to The address to mint the initial supply to
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
     fn constructor_with_initial_supply(
@@ -91,6 +95,7 @@ pub contract Token {
     /// @param symbol The symbol of the token
     /// @param decimals The number of decimals of the token
     /// @param minter The address of the minter
+    /// @param upgrade_authority The address of the upgrade authority (zero address if not upgradeable)
     #[public]
     #[initializer]
     fn constructor_with_minter(
@@ -703,6 +708,26 @@ pub contract Token {
             context,
         );
         commitment
+    }
+
+    /** ==========================================================
+     * ===================  UPGRADEABLE  =========================
+     * ======================================================== */
+
+    /// @notice Upgrades the contract to a new contract class id
+    /// @dev The upgrade authority must be set
+    /// @dev The upgrade will only be effective after the upgrade delay has passed
+    /// @param new_contract_class_id The new contract class id
+    #[public]
+    fn upgrade_contract(new_contract_class_id: Field) {
+        let upgrade_authority = storage.upgrade_authority.read();
+
+        assert(!upgrade_authority.eq(AztecAddress::zero()), "upgrade authority not set");
+        assert(context.msg_sender().eq(upgrade_authority), "caller is not upgrade authority");
+
+        ContractInstanceDeployer::at(DEPLOYER_CONTRACT_ADDRESS)
+            .update(ContractClassId::from_field(new_contract_class_id))
+            .call(&mut context);
     }
 
     /** ==========================================================
