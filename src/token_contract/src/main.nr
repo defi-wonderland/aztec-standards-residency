@@ -775,9 +775,9 @@ pub contract Token {
         amount: u128,
     ) {
         if (!transfer_authority.eq(AztecAddress::zero())) {
-            ComplianceCheck::at(transfer_authority).authorize_transfer_private(from, amount).call(
-                context,
-            );
+            ComplianceCheck::at(transfer_authority)
+                .authorize_transfer_private(context.msg_sender(), from, amount)
+                .call(context);
         }
     }
 
@@ -789,9 +789,9 @@ pub contract Token {
         amount: u128,
     ) {
         if (!transfer_authority.eq(AztecAddress::zero())) {
-            ComplianceCheck::at(transfer_authority).authorize_transfer_public(from, amount).call(
-                context,
-            );
+            ComplianceCheck::at(transfer_authority)
+                .authorize_transfer_public(context.msg_sender(), from, amount)
+                .call(context);
         }
     }
 

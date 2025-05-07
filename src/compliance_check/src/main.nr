@@ -6,12 +6,12 @@ pub contract ComplianceCheck {
         prelude::AztecAddress,
         macros::{
             functions::{private, public},
-        }
+        },
     };
-    
+
     #[private]
-    fn authorize_transfer_private(_from: AztecAddress, _amount: u128) {}
+    fn authorize_transfer_private(_sender: AztecAddress, _from: AztecAddress, _amount: u128) {}
 
     #[public]
-    fn authorize_transfer_public(_from: AztecAddress, _amount: u128) {}
+    fn authorize_transfer_public(_sender: AztecAddress, _from: AztecAddress, _amount: u128) {}
 }
