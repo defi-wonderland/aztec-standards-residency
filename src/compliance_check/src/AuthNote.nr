@@ -21,7 +21,8 @@ global ZERO_ADDRESS: AztecAddress = AztecAddress::from_field(
 #[derive(Eq)]
 pub struct AuthNote {
     owner: AztecAddress,
-    scoped_nullifier:Field,
+    zk_id: Field,
+    epoch: u64,
     authenticated: bool,
     transfer_total: u128,
     randomness: Field,
@@ -29,22 +30,26 @@ pub struct AuthNote {
 
 
 impl AuthNote {
-    pub fn new(owner: AztecAddress, scoped_nullifier: Field, authenticated: bool, transfer_total: u128) -> Self {
+    pub fn new(owner: AztecAddress, zk_id: Field, authenticated: bool, epoch: u64, transfer_total: u128) -> Self {
         let randomness = unsafe { random() };
 
-        AuthNote { owner, scoped_nullifier, authenticated, transfer_total, randomness }
+        AuthNote { owner, zk_id, epoch, authenticated, transfer_total, randomness }
     }
 
     pub fn owner(self) -> AztecAddress {
         self.owner
     }
 
-    pub fn scoped_nullifier(self) -> Field {
-        self.scoped_nullifier
+    pub fn zk_id(self) -> Field {
+        self.zk_id
     }
 
     pub fn authenticated(self) -> bool {
         self.authenticated
+    }
+
+    pub fn epoch(self) -> u64 {
+        self.epoch
     }
 
     pub fn transfer_total(self) -> u128 {
@@ -52,6 +57,6 @@ impl AuthNote {
     }
 
     pub fn default() -> Self {
-        AuthNote { owner: ZERO_ADDRESS, scoped_nullifier: ZERO_FIELD, authenticated: false, transfer_total: 0, randomness: ZERO_FIELD }
+        AuthNote { owner: ZERO_ADDRESS, zk_id: ZERO_FIELD, epoch: 0, authenticated: false, transfer_total: 0, randomness: ZERO_FIELD }
     }
 }

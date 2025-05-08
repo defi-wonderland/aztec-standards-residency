@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "target": "ES2022",
+    "lib": ["ES2022", "dom", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "declaration": true,
+    "allowSyntheticDefaultImports": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "inlineSourceMap": true,
+    "declarationMap": true,
+    "importHelpers": true,
+    "resolveJsonModule": true,
+    "composite": true,
+    "skipLibCheck": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"],
+      "@zkpassport/*": ["./node_modules/@zkpassport/*"],
+      "@obsidion/kernel": ["../aztec-contracts/dist/src"]
+    }
+  },
+
+  "include": ["src", "src/**/*.json"],
+  "exclude": ["node_modules", "trash", "**/*.svelte", "**/*.svelte-*", "**/.svelte*"]
+}
