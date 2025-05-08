@@ -79,10 +79,8 @@ pub contract ComplianceCheck {
 
             let epoch = _calculate_epoch(timestamp);
 
-            assert(epoch_from_auth_note == epoch, "address has already registered for this epoch");
+            assert(epoch_from_auth_note != epoch, "address has already registered for this epoch");
         }
-        // let auth_note_exists = storage.address_authorised.at(address).get_note().note;
-        //do i need to check if this fails?,
 
         let epoch = _calculate_epoch(timestamp);
 
@@ -159,13 +157,6 @@ pub contract ComplianceCheck {
         //fixed point math if there are rounding errors
         //safe math noir or something
     }
-
-    // #[utility]
-    // unconstrained fn _check_auth_note_exists(address: AztecAddress) -> bool {
-    //     let location = storage.address_authorised.at(address);
-    //     let auth_note_exists = location.is_initialized();
-    //     auth_note_exists
-    // }
 
     #[public]
     #[internal]

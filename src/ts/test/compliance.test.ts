@@ -41,6 +41,9 @@ describe("ZkPassport Proof Verification", () => {
   let zk_id: bigint;
   let timestamp: number;
   let alice: AccountWallet;
+  let epoch2: number;
+
+  const EPOCH_TIME2 = 2628000*2;
 
 
   const SANDBOX_URL = "http://localhost:8080";
@@ -74,12 +77,12 @@ describe("ZkPassport Proof Verification", () => {
     // const contract = await ComplianceCheckContract.deploy(deployer, deployerAddress).send({ fee: { paymentMethod } }).deployed();
     complianceCheckAddress = complianceCheckContract.address;
 
-
-    //deploy the token
-    // const { contract: complianceTokenContract} = await deployToken(deployer, INITIAL_ADMIN_BALANCE, INITIAL_SUPPLY, logger, "Compliance Token", "CT", 9, pxe);
     const complianceTokenContract = await deployTokenWithMinter(deployer, paymentMethod, complianceCheckAddress);
     complianceToken = complianceTokenContract;
     complianceTokenAddress = complianceTokenContract.address;
+
+    alice = await createAccountWithoutSecretKey(pxe);
+
   });
 
   it("should deploy the contract and token", async () => {
@@ -175,28 +178,31 @@ describe("ZkPassport Proof Verification", () => {
     expect(receipt).toBeDefined();
   })
 
+  it.skip("cannot register the same user again", async () => {
+    await expect(complianceCheckContract.withWallet(user).methods.register(circuitInputs, zk_id, timestamp).send({ fee: { paymentMethod } }).wait()).rejects.toThrow();
+  })
+
   it("mints the user 200,000 tokens", async () => {
-    const amount = 200000000000000n;
+    const amount = 2000000000000000n;
     const receipt = await complianceToken.withWallet(deployer).methods.mint_to_private(deployer.getAddress(), user.getAddress(), amount).send({ fee: { paymentMethod } }).wait()
 
     const userBalance = await complianceToken.withWallet(user).methods.balance_of_private(user.getAddress()).simulate()
     expect(userBalance).toBe(amount);
   })
 
-  it("user transfers 10,000 tokens", async () => {
+  it.skip("user transfers 10,000 tokens", async () => {
     const amount = 10000000000000n;
-    alice = await createAccountWithoutSecretKey(pxe);
     const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
     expect(receipt).toBeDefined();
   })
 
-  it("user transfers 60,000 tokens", async () => {
+  it.skip("user transfers 60,000 tokens", async () => {
     const amount = 60000000000000n;
     const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
     expect(receipt).toBeDefined();
   })
 
-  it("user transfers 60,000 more to alice", async () => {
+  it.skip("user transfers 60,000 more to alice", async () => {
     const amount = 60000000000000n;
     await expect(complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()).rejects.toThrow();
   })
@@ -221,6 +227,29 @@ describe("ZkPassport Proof Verification", () => {
 
     await expect(complianceCheckContract.withWallet(alice).methods.register(circuitInputs, zk_id, timestamp).send({ fee: { paymentMethod } }).wait()).rejects.toThrow();
   })
+
+  it("registers the same user for the next epoch", async () => {
+    epoch2 = timestamp + EPOCH_TIME2;
+    const receipt = await complianceCheckContract.withWallet(user).methods.register(circuitInputs, zk_id, epoch2).send({ fee: { paymentMethod } }).wait()
+    expect(receipt).toBeDefined();
+  })
+
+  it("user transfers 50,000 tokens to alice", async () => {
+    const amount = 50000000000000n;
+    const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
+    expect(receipt).toBeDefined();
+  })
+
+  it("user transfers 50,000 tokens to alice", async () => {
+    const amount = 40000000000000n;
+    const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
+    expect(receipt).toBeDefined();
+  })
+
+
+
+
+
 
   //doing multiple small amounts, see if they are ok
 

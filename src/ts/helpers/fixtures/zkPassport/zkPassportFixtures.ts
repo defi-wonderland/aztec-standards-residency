@@ -22,7 +22,7 @@ import { ContractProofData } from "../../identity/identityRegistryService.js"
 //proof_d: [0] - comm_in
 //         [n-1] - scoped_nullifier
 
-//need to check to see if the inputs are jsut 2, or they are all of the public_inouts that are needed
+
 
 /**
  * Format proofs for contract without using ZKPassportHelper
