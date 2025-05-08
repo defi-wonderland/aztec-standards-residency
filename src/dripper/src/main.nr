@@ -2,10 +2,8 @@ use dep::aztec::macros::aztec;
 
 #[aztec]
 pub contract Dripper {
-    use dep::aztec::{
-        macros::{functions::{private, public, initializer}},
-    };
-    use dep::aztec::prelude::{AztecAddress};
+    use dep::aztec::macros::functions::{initializer, private, public};
+    use dep::aztec::prelude::AztecAddress;
     use token::Token;
 
     #[private]

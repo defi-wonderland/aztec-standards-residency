@@ -37,7 +37,7 @@ unconstrained fn transfer_private_to_public_with_commitment_stores_commitment() 
     env.advance_block_by(1);
 
     assert(
-        utils::_commitment_storage_read(token_contract_address, commitment.commitment()) == true,
+        utils::_commitment_storage_read(token_contract_address, commitment) == true,
         "Commitment not stored",
     );
 }
@@ -137,7 +137,7 @@ unconstrained fn transfer_private_to_public_with_commitment_and_finalize_with_in
         .transfer_private_to_public_with_commitment(owner, recipient, transfer_amount, 0)
         .call(&mut env.private());
 
-    let invalid_commitment = PartialUintNote { commitment: 0xdeadbeef };
+    let invalid_commitment: Field = 0xdeadbeef;
 
     // finalize transfer to an invalid commitment
     env.impersonate(recipient);
@@ -169,7 +169,7 @@ unconstrained fn transfer_private_to_public_with_commitment_and_finalize_with_co
         .transfer_private_to_public_with_commitment(owner, recipient, transfer_amount, 0)
         .call(&mut env.private());
 
-    let invalid_commitment = PartialUintNote { commitment: 0 };
+    let invalid_commitment = 0;
     // Transfer tokens
     env.impersonate(recipient);
     Token::at(token_contract_address)

@@ -14,7 +14,7 @@ unconstrained fn transfer_private_to_commitment() {
 
     // Prepare commitment
     env.impersonate(recipient);
-    let commitment: PartialUintNote = Token::at(token_contract_address)
+    let commitment = Token::at(token_contract_address)
         .initialize_transfer_commitment(recipient, recipient)
         .call(&mut env.private());
 
@@ -43,7 +43,7 @@ unconstrained fn transfer_private_to_commitment_on_behalf_of_other() {
 
     // Prepare commitment
     env.impersonate(recipient);
-    let commitment: PartialUintNote = Token::at(token_contract_address)
+    let commitment = Token::at(token_contract_address)
         .initialize_transfer_commitment(recipient, recipient)
         .call(&mut env.private());
     env.advance_block_by(1);
@@ -74,7 +74,7 @@ unconstrained fn transfer_private_to_commitment_non_zero_nonce() {
 
     // Prepare commitment
     env.impersonate(recipient);
-    let commitment: PartialUintNote = Token::at(token_contract_address)
+    let commitment = Token::at(token_contract_address)
         .initialize_transfer_commitment(recipient, recipient)
         .call(&mut env.private());
 
