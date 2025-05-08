@@ -86,6 +86,6 @@ jobs:
 
 
       - name: Publish to NPM
-        run: cd export/${{ env.PROJECT_NAME }}/current && npm publish --access public --tag canary
+        run: cd export/${{ env.PROJECT_NAME }} && npm publish --access public --tag canary
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
