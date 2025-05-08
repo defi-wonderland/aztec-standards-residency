@@ -37,6 +37,12 @@ jobs:
         run: |
           VERSION=${AZTEC_VERSION} aztec-up
       
+      # Install the current canary version of the package we're releasing now.
+      - name: Install dependencies
+        run: |
+          yarn
+          yarn add @defi-wonderland/aztec-standards@canary
+  
       - name: Compile
         run: yarn compile
 
@@ -47,11 +53,6 @@ jobs:
         run: |
           mkdir -p dist/artifacts
           yarn tsc artifacts/*.ts --outDir dist/artifacts --skipLibCheck --target es2020 --module nodenext --moduleResolution nodenext --resolveJsonModule
-
-
-      # Install the current canary version of the package we're releasing now.
-      - name: Install dependencies
-        run: yarn add @defi-wonderland/aztec-standards@canary
 
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
