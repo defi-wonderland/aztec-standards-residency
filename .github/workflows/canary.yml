@@ -37,12 +37,11 @@ jobs:
         run: |
           VERSION=${AZTEC_VERSION} aztec-up
       
-      # Install the current canary version of the package we're releasing now.
+      # Install dependencies AND the current canary version of the package we're releasing now.
       - name: Install dependencies
         run: |
           yarn
           yarn add @defi-wonderland/aztec-standards@canary
-  
       - name: Compile
         run: yarn compile
 
