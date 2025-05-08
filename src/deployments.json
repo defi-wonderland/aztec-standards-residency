@@ -1,0 +1,31 @@
+{
+    "tokens": [
+        {
+            "name": "ETH",
+            "symbol": "ETH",
+            "address": "0x06f8c187b65c18c5d30e4345ffa105feaa201bbe2712ef8a8c17b6a235359f9b",
+            "decimals": 18,
+            "minter": "contracts:dripper",
+            "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
+        },
+        {
+            "name": "DAI",
+            "symbol": "DAI",
+            "address": "0x10575e15cb7a09d6f34ffefac05e8bc717738622dd3e56c8e72b886a6d93ff84",
+            "decimals": 9,
+            "minter": "contracts:dripper",
+            "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
+        },
+        {
+            "name": "USDC",
+            "symbol": "USDC",
+            "address": "0x09a868460666e3e1919b500d5a05f5859bb18842c3220fa15727cdd8b97fd7a0",
+            "decimals": 6,
+            "minter": "contracts:dripper",
+            "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
+        }
+    ],
+    "dripper" : {
+        "address": "0x148fbbf17df911728c9a5fb324066548335be5df3d712846a60b9992c6c3a4a5"
+    }
+}

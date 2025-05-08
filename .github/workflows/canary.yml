@@ -10,7 +10,7 @@ jobs:
 
     env:
       PROJECT_NAME: '@defi-wonderland/aztec-standards'
-      AZTEC_VERSION: 0.85.0-alpha-testnet.7
+      AZTEC_VERSION: 0.85.0-alpha-testnet.9
 
     steps:
       - name: Checkout Repo
@@ -42,7 +42,6 @@ jobs:
         run: |
           yarn
           yarn add @defi-wonderland/aztec-standards@canary
-
       - name: Compile
         run: yarn compile
 
@@ -52,7 +51,7 @@ jobs:
       - name: Compile artifacts to JS
         run: |
           mkdir -p dist/artifacts
-          yarn tsc artifacts/*.ts --outDir dist/artifacts --skipLibCheck --target es2020 --module nodenext --moduleResolution nodenext --resolveJsonModule
+          yarn tsc artifacts/*.ts --outDir dist/artifacts --skipLibCheck --target es2020 --module nodenext --moduleResolution nodenext --resolveJsonModule --declaration
 
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
@@ -70,11 +69,11 @@ jobs:
           mkdir -p export/${{ env.PROJECT_NAME }}/current
           mkdir -p export/${{ env.PROJECT_NAME }}/historical
           
-          if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
-            cp -r node_modules/${{ env.PROJECT_NAME }}/historical/* export/${{ env.PROJECT_NAME }}/historical/
-          else
-            echo "No historical directory found, skipping copy"
-          fi
+          # if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
+          #   cp -r node_modules/${{ env.PROJECT_NAME }}/historical/* export/${{ env.PROJECT_NAME }}/historical/
+          # else
+          #   echo "No historical directory found, skipping copy"
+          # fi
 
           cp -r dist/artifacts export/${{ env.PROJECT_NAME }}/current/
           cp -r target export/${{ env.PROJECT_NAME }}/current/
