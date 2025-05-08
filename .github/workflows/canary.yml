@@ -62,16 +62,15 @@ jobs:
           mkdir -p export/${{ env.PROJECT_NAME }}/current
           mkdir -p export/${{ env.PROJECT_NAME }}/historical
           
-          # Copy historical versions from existing package
           if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
             cp -r node_modules/${{ env.PROJECT_NAME }}/historical/* export/${{ env.PROJECT_NAME }}/historical/
+          else
+            echo "No historical directory found, skipping copy"
           fi
           
-          # Set up current version with new artifacts and circuits
           cp -r artifacts export/${{ env.PROJECT_NAME }}/current/
           cp -r target export/${{ env.PROJECT_NAME }}/current/
         
-          # Also copy current version to historical
           cp -r export/${{ env.PROJECT_NAME }}/current export/${{ env.PROJECT_NAME }}/historical/$VERSION
 
           cp package.json export/${{ env.PROJECT_NAME }}/
