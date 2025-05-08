@@ -371,6 +371,30 @@ pub contract Token {
         storage.total_supply.read()
     }
 
+    /// @notice Returns the name of the token
+    /// @return The name of the token
+    #[public]
+    #[view]
+    fn name() -> str<31> {
+        storage.name.read().to_string()
+    }
+
+    /// @notice Returns the symbol of the token
+    /// @return The symbol of the token
+    #[public]
+    #[view]
+    fn symbol() -> str<31> {
+        storage.symbol.read().to_string()
+    }
+
+    /// @notice Returns the decimals of the token
+    /// @return The decimals of the token
+    #[public]
+    #[view]
+    fn decimals() -> u8 {
+        storage.decimals.read()
+    }
+
     /** ==========================================================
      * ===================== UNCONSTRAINED =======================
      * ======================================================== */

@@ -31,7 +31,7 @@ fn drip_to_private(token_address: AztecAddress, amount: u64) { /* ... */ }
 ```
 
 ## Token Contract
-The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec’s confidentiality features.
+The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec's confidentiality features.
 
 ### AIP-20: Aztec Token Standard
 We published the AIP-20 Aztec Token Standard in our forum: https://forum.aztec.network/t/request-for-comments-aip-20-aztec-token-standard/7737
@@ -212,8 +212,6 @@ fn transfer_public_to_public(
     nonce: Field,
 ) { /* ... */ }
 
-### Upgradeable
-```rust
 /// @notice Upgrades the contract to a new contract class id
 /// @dev Only callable by the `upgrade_authority` and effective after the upgrade delay
 /// @param new_contract_class_id The new contract class id
@@ -309,6 +307,24 @@ fn balance_of_public(owner: AztecAddress) -> u128 { /* ... */ }
 #[public]
 #[view]
 fn total_supply() -> u128 { /* ... */ }
+
+/// @notice Returns the name of the token
+/// @return The name of the token
+#[public]
+#[view]
+fn name() -> str<31> { /* ... */ }
+
+/// @notice Returns the symbol of the token
+/// @return The symbol of the token
+#[public]
+#[view]
+fn symbol() -> str<31> { /* ... */ }
+
+/// @notice Returns the decimals of the token
+/// @return The decimals of the token
+#[public]
+#[view]
+fn decimals() -> u8 { /* ... */ }
 ```
 
 ### Utility Functions
