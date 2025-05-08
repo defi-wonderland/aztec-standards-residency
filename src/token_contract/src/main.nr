@@ -202,14 +202,14 @@ pub contract Token {
     /// @notice Transfer tokens from private balance to the recipient commitment (recipient must create a commitment first)
     /// @dev Spends notes, emits a new note (UintNote) with any remaining change, and enqueues a public call
     /// @param from The address of the sender
-    /// @param amount The amount of tokens to transfer
     /// @param commitment The partial note representing the commitment (privacy entrance that the recipient shares with the sender)
+    /// @param amount The amount of tokens to transfer
     /// @param nonce The nonce used for authwitness
     #[private]
     fn transfer_private_to_commitment(
         from: AztecAddress,
-        amount: u128,
         commitment: Field,
+        amount: u128,
         nonce: Field,
     ) {
         _validate_from_private(&mut context, from, nonce);
@@ -300,14 +300,14 @@ pub contract Token {
     /// @dev The transfer must be prepared by calling `initialize_transfer_commitment` first and the resulting
     /// `commitment` must be passed as an argument to this function
     /// @param from The address of the sender
-    /// @param amount The amount of tokens to transfer
     /// @param commitment The partial note representing the commitment (privacy entrance)
+    /// @param amount The amount of tokens to transfer
     /// @param nonce The nonce used for authwitness
     #[public]
     fn transfer_public_to_commitment(
         from: AztecAddress,
-        amount: u128,
         commitment: Field,
+        amount: u128,
         nonce: Field,
     ) {
         _validate_from_public(&mut context, from, nonce);
@@ -318,11 +318,11 @@ pub contract Token {
 
     /// @notice Stores a partial note in storage
     /// @dev Used to store the commitment (privacy entrance)
-    /// @param slot The partial note to store
+    /// @param commitment The partial note to store
     #[public]
     #[internal]
-    fn store_commitment_in_storage_internal(slot: PartialUintNote) {
-        _store_commitment_in_storage(&mut context, slot);
+    fn store_commitment_in_storage_internal(commitment: PartialUintNote) {
+        _store_commitment_in_storage(&mut context, commitment);
     }
 
     /// @notice Increases the public balance of `to` by `amount`
@@ -440,10 +440,10 @@ pub contract Token {
 
     /// @notice Finalizes a mint to a commitment
     /// @dev Finalizes a mint to a commitment and updates the total supply
-    /// @param amount The amount of tokens to mint
     /// @param commitment The partial note representing the mint commitment (privacy entrance)
+    /// @param amount The amount of tokens to mint
     #[public]
-    fn mint_to_commitment(amount: u128, commitment: Field) {
+    fn mint_to_commitment(commitment: Field, amount: u128) {
         _validate_minter(context.msg_sender(), storage.minter.read());
 
         _increase_total_supply(storage.total_supply, amount);
