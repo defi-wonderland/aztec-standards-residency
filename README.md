@@ -116,7 +116,7 @@ fn transfer_private_to_public_with_commitment(
     to: AztecAddress,
     amount: u128,
     nonce: Field,
-) -> PartialUintNote { /* ... */ }
+) -> Field { /* ... */ }
 
 /// @notice Transfer tokens from private balance to private balance
 /// @dev Spends notes, emits a new note (UintNote) with any remaining change, and sends a note to the recipient
@@ -135,14 +135,14 @@ fn transfer_private_to_private(
 /// @notice Transfer tokens from private balance to the recipient commitment (recipient must create a commitment first)
 /// @dev Spends notes, emits a new note (UintNote) with any remaining change, and enqueues a public call
 /// @param from The address of the sender
+/// @param commitment The Field representing the commitment (privacy entrance that the recipient shares with the sender)
 /// @param amount The amount of tokens to transfer
-/// @param commitment The partial note representing the commitment (privacy entrance that the recipient shares with the sender)
 /// @param nonce The nonce used for authwitness
 #[private]
 fn transfer_private_to_commitment(
     from: AztecAddress,
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
     nonce: Field,
 ) { /* ... */ }
 
@@ -169,7 +169,7 @@ fn transfer_public_to_private(
 fn initialize_transfer_commitment(
     from: AztecAddress,
     to: AztecAddress,
-) -> PartialUintNote { /* ... */ }
+) -> Field { /* ... */ }
 
 /// @notice Recursively subtracts balance from commitment
 /// @dev Used to subtract balances that exceed the max notes limit
@@ -217,30 +217,29 @@ fn transfer_public_to_public(
 /// @param new_contract_class_id The new contract class id
 #[public]
 fn upgrade_contract(new_contract_class_id: Field) { /* ... */ }
-```
 
 /// @notice Finalizes a transfer of token `amount` from public balance of `from` to a commitment of `to`
 /// @dev The transfer must be prepared by calling `initialize_transfer_commitment` first and the resulting
 /// `commitment` must be passed as an argument to this function
 /// @param from The address of the sender
+/// @param commitment The Field representing the commitment (privacy entrance)
 /// @param amount The amount of tokens to transfer
-/// @param commitment The partial note representing the commitment (privacy entrance)
 /// @param nonce The nonce used for authwitness
 #[public]
 fn transfer_public_to_commitment(
     from: AztecAddress,
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
     nonce: Field,
 ) { /* ... */ }
 
 /// @notice Stores a partial note in storage
 /// @dev Used to store the commitment (privacy entrance)
-/// @param slot The partial note to store
+/// @param commitment The partial note to store
 #[public]
 #[internal]
 fn store_commitment_in_storage_internal(
-    slot: PartialUintNote,
+    commitment: PartialUintNote,
 ) { /* ... */ }
 
 /// @notice Increases the public balance of `to` by `amount`
@@ -285,12 +284,12 @@ fn mint_to_public(
 
 /// @notice Finalizes a mint to a commitment
 /// @dev Finalizes a mint to a commitment and updates the total supply
+/// @param commitment The Field representing the mint commitment (privacy entrance)
 /// @param amount The amount of tokens to mint
-/// @param commitment The partial note representing the mint commitment (privacy entrance)
 #[public]
 fn mint_to_commitment(
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
 ) { /* ... */ }
 ```
 
