@@ -43,6 +43,12 @@ jobs:
       - name: Codegen
         run: aztec codegen target --outdir artifacts
 
+      - name: Compile artifacts to JS
+        run: |
+          mkdir -p dist/artifacts
+          yarn tsc artifacts/*.ts --outDir dist/artifacts --skipLibCheck --target es2020 --module nodenext --moduleResolution nodenext --resolveJsonModule
+
+
       # Install the current canary version of the package we're releasing now.
       - name: Install dependencies
         run: yarn add @defi-wonderland/aztec-standards@canary
@@ -69,7 +75,7 @@ jobs:
             echo "No historical directory found, skipping copy"
           fi
 
-          cp -r artifacts export/${{ env.PROJECT_NAME }}/current/
+          cp -r dist/artifacts export/${{ env.PROJECT_NAME }}/current/
           cp -r target export/${{ env.PROJECT_NAME }}/current/
           cp -r export/${{ env.PROJECT_NAME }}/current export/${{ env.PROJECT_NAME }}/historical/$VERSION
 
