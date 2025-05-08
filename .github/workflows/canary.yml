@@ -41,23 +41,45 @@ jobs:
         run: yarn compile
 
       - name: Codegen
-        run: yarn codegen
+        run: aztec codegen target --outdir artifacts
+
+      # Install the current canary version of the package we're releasing now.
+      - name: Install dependencies
+        run: yarn add @defi-wonderland/aztec-standards@canary
 
       - name: Update version
         run: yarn version --new-version "0.0.0-${GITHUB_SHA::8}" --no-git-tag-version
 
-      # TODO: There must a be a better way to prepare all these files and directories
+      # TODO: We do several things here:
+      # 1. Create current and historical directories
+      # 2. Copy historical versions from existing package
+      # 3. Move this version's artifacts and circuits to current/
+      # 4. Move this version's artifact and circuit to historical/ as well.
+      # 5. Copy package.json, README.md, and LICENSE to current/
       - name: Prepare files for release
         run: |
-          mkdir -p export/${{ env.PROJECT_NAME }}
-          mkdir -p export/${{ env.PROJECT_NAME }}/src/
-          cp -r src/artifacts export/${{ env.PROJECT_NAME }}/src/
-          cp -r target export/${{ env.PROJECT_NAME }}/
+          VERSION="0.0.0-${GITHUB_SHA::8}"
+          mkdir -p export/${{ env.PROJECT_NAME }}/current
+          mkdir -p export/${{ env.PROJECT_NAME }}/historical
+          
+          # Copy historical versions from existing package
+          if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
+            cp -r node_modules/${{ env.PROJECT_NAME }}/historical/* export/${{ env.PROJECT_NAME }}/historical/
+          fi
+          
+          # Set up current version with new artifacts and circuits
+          cp -r artifacts export/${{ env.PROJECT_NAME }}/current/
+          cp -r target export/${{ env.PROJECT_NAME }}/current/
+        
+          # Also copy current version to historical
+          cp -r export/${{ env.PROJECT_NAME }}/current export/${{ env.PROJECT_NAME }}/historical/$VERSION
+
           cp package.json export/${{ env.PROJECT_NAME }}/
           cp README.md export/${{ env.PROJECT_NAME }}/
           cp LICENSE export/${{ env.PROJECT_NAME }}/
 
+
       - name: Publish to NPM
-        run: cd export/${{ env.PROJECT_NAME }} && npm publish --access public --tag canary
+        run: cd export/${{ env.PROJECT_NAME }}/current && npm publish --access public --tag canary
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
