@@ -183,9 +183,15 @@ describe("ZkPassport Proof Verification", () => {
     expect(userBalance).toBe(amount);
   })
 
+  it("user transfers 10,000 tokens", async () => {
+    const amount = 10000000000000n;
+    alice = await createAccountWithoutSecretKey(pxe);
+    const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
+    expect(receipt).toBeDefined();
+  })
+
   it("user transfers 60,000 tokens", async () => {
     const amount = 60000000000000n;
-    alice = await createAccountWithoutSecretKey(pxe);
     const receipt = await complianceToken.withWallet(user).methods.transfer_private_to_private(user.getAddress(), alice.getAddress(), amount, 0).send({ fee: { paymentMethod } }).wait()
     expect(receipt).toBeDefined();
   })
