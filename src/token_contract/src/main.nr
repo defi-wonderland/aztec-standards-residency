@@ -375,16 +375,16 @@ pub contract Token {
     /// @return The name of the token
     #[public]
     #[view]
-    fn name() -> str<31> {
-        storage.name.read().to_string()
+    fn name() -> FieldCompressedString {
+        storage.name.read()
     }
 
     /// @notice Returns the symbol of the token
     /// @return The symbol of the token
     #[public]
     #[view]
-    fn symbol() -> str<31> {
-        storage.symbol.read().to_string()
+    fn symbol() -> FieldCompressedString {
+        storage.symbol.read()
     }
 
     /// @notice Returns the decimals of the token
