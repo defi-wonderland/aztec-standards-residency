@@ -107,9 +107,9 @@ unconstrained fn mint_to_private_failure_invalid_commitments_random() {
     let mint_amount: u128 = 10_000;
     env.impersonate(minter);
 
-    Token::at(token_contract_address)
-        .mint_to_commitment(mint_amount, PartialUintNote { commitment: random() })
-        .call(&mut env.public());
+    Token::at(token_contract_address).mint_to_commitment(mint_amount, random()).call(
+        &mut env.public(),
+    );
 }
 
 #[test(should_fail_with = "Invalid commitment 'context.storage_read(commitment.commitment())'")]
@@ -118,9 +118,7 @@ unconstrained fn mint_to_private_failure_invalid_commitments_zero() {
 
     let mint_amount: u128 = 10_000;
     env.impersonate(minter);
-    Token::at(token_contract_address)
-        .mint_to_commitment(mint_amount, PartialUintNote { commitment: 0 })
-        .call(&mut env.public());
+    Token::at(token_contract_address).mint_to_commitment(mint_amount, 0).call(&mut env.public());
 }
 
 #[test(should_fail_with = "Got 2 logs for tag")]

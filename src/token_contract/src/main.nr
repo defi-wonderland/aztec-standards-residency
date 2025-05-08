@@ -153,7 +153,7 @@ pub contract Token {
         to: AztecAddress,
         amount: u128,
         nonce: Field,
-    ) -> PartialUintNote {
+    ) -> Field {
         _validate_from_private(&mut context, from, nonce);
 
         _decrease_private_balance(
@@ -170,7 +170,7 @@ pub contract Token {
 
         let commitment =
             _initialize_transfer_commitment(&mut context, storage.private_balances, from, to);
-        commitment
+        commitment.commitment()
     }
 
     /// @notice Transfer tokens from private balance to another private balance
@@ -209,7 +209,7 @@ pub contract Token {
     fn transfer_private_to_commitment(
         from: AztecAddress,
         amount: u128,
-        commitment: PartialUintNote,
+        commitment: Field,
         nonce: Field,
     ) {
         _validate_from_private(&mut context, from, nonce);
@@ -223,7 +223,7 @@ pub contract Token {
         );
 
         Token::at(context.this_address())
-            .increase_commitment_balance_internal(commitment, amount)
+            .increase_commitment_balance_internal(PartialUintNote { commitment }, amount)
             .enqueue(&mut context);
     }
 
@@ -255,8 +255,10 @@ pub contract Token {
     /// @param to The address of the recipient
     /// @return commitment The partial note initialized for the transfer/mint commitment
     #[private]
-    fn initialize_transfer_commitment(from: AztecAddress, to: AztecAddress) -> PartialUintNote {
-        _initialize_transfer_commitment(&mut context, storage.private_balances, from, to)
+    fn initialize_transfer_commitment(from: AztecAddress, to: AztecAddress) -> Field {
+        let commitment =
+            _initialize_transfer_commitment(&mut context, storage.private_balances, from, to);
+        commitment.commitment()
     }
 
     /// @notice Recursively subtracts balance from commitment
@@ -305,13 +307,13 @@ pub contract Token {
     fn transfer_public_to_commitment(
         from: AztecAddress,
         amount: u128,
-        commitment: PartialUintNote,
+        commitment: Field,
         nonce: Field,
     ) {
         _validate_from_public(&mut context, from, nonce);
 
         _decrease_public_balance(storage.public_balances, from, amount);
-        _increase_commitment_balance(&mut context, commitment, amount);
+        _increase_commitment_balance(&mut context, PartialUintNote { commitment }, amount);
     }
 
     /// @notice Stores a partial note in storage
@@ -441,11 +443,11 @@ pub contract Token {
     /// @param amount The amount of tokens to mint
     /// @param commitment The partial note representing the mint commitment (privacy entrance)
     #[public]
-    fn mint_to_commitment(amount: u128, commitment: PartialUintNote) {
+    fn mint_to_commitment(amount: u128, commitment: Field) {
         _validate_minter(context.msg_sender(), storage.minter.read());
 
         _increase_total_supply(storage.total_supply, amount);
-        _increase_commitment_balance(&mut context, commitment, amount);
+        _increase_commitment_balance(&mut context, PartialUintNote { commitment }, amount);
     }
 
     #[public]
