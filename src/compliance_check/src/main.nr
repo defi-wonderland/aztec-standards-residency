@@ -25,22 +25,23 @@ pub contract ComplianceCheck {
     global OBSIDION_SCOPE: Field = 0x0000000000000000000000000000000000000000000000000000000000000000; 
     global HONK_IDENTIFIER: u32 = 1;
     global KEY_HASH: Field = 0;
+
+    //ASSUMPTIONS:
+    // - Proofs are valid
+    // - User timestamp provided is correct
     
 
     #[storage]
     struct Storage<Context> {
+        // Admin to update the roots, will be replaced in the future. 
         admin: PublicMutable<AztecAddress, Context>,
+        // Cerificate Registry Root
         registry_root: PublicMutable<Field, Context>,
         // Map: address -> AuthNote
         address_authorised: Map<AztecAddress, PrivateMutable<AuthNote, Context>, Context>,
         //Map: epoch -> zk_id -> bool
         epoch_zk_id: Map<u64, Map<Field, PublicMutable<bool, Context>, Context>, Context>,
     }
-
-    //each month is 2628000 seconds
-    //each day is 86400 seconds
-    // divide timestamp by month, 
-    // pass in the timestamp, assert the timestamp in public function
 
     #[public]
     #[initializer]
@@ -57,21 +58,13 @@ pub contract ComplianceCheck {
     #[private]
     fn register(circuitInputs: SubProofInputs, zk_id: Field, timestamp: u64) {
 
-        //check existing note for address, have logic for if its the same epoch, if its a new one replace it.
-
         let address = context.msg_sender();
 
         //check that the note exists
         let location = storage.address_authorised.at(address);
 
-        //safety: no good
+        //safety: no good :(
         let auth_note_exists = unsafe { check_nullifier_exists(location.compute_initialization_nullifier()) };
-        // let auth_note_exists = unsafe { location.is_initialized() }
-
-        // let storage_slot = derive_storage_slot_in_map(location, address);
-
-        // let (prev_retrieved_note, note_hash_for_read_request): (RetrievedNote<AuthNote>, Field) = get_note(context, storage_slot);
-
 
         if auth_note_exists {
             let auth_note = location.get_note().note;
@@ -80,13 +73,12 @@ pub contract ComplianceCheck {
             let epoch = _calculate_epoch(timestamp);
 
             assert(epoch_from_auth_note != epoch, "address has already registered for this epoch");
+            //if the address has already been registered for this epoch, fail here to prevent re-registration
         }
 
         let epoch = _calculate_epoch(timestamp);
 
-        //check the public inputs are equal
-        //verify the proofs,
-        //check registry root and all that fun jazz
+        //Verify the proofs within the smart contract, skipping these for now due to a compile issue in this version.
 
         // verify_proof_with_type(
         //     circuitInputs.vkeys.vkey_a,
@@ -119,7 +111,8 @@ pub contract ComplianceCheck {
         // );
 
         //assert the commitments in and out are equal for each circuit
-        //will need to update depending on the size of the public inputs for each circuit
+        //skipping the 3rd one as my mock proofs are mock proofs x 
+
         assert(circuitInputs.public_inputs.input_a[1] == circuitInputs.public_inputs.input_b[0], "comm_out of proof_a does not match comm_in of proof_b");
         assert(circuitInputs.public_inputs.input_b[1] == circuitInputs.public_inputs.input_c[0], "comm_out of proof_c does not match comm_in of proof_d");
         // assert(circuitInputs.public_inputs.input_c[1] == circuitInputs.public_inputs.input_d[0], "comm_out of proof_d does not match comm_in of proof_c");
@@ -129,13 +122,13 @@ pub contract ComplianceCheck {
 
 
         //assert that the scoped nullifier is obsidion, for demo purposes, hardcode this check, could be storage for allowed websites
-        //change this to whatever the correct value is
+        // in the future we could have the scope included in the proof to be this contract / chain id / etc
         //comment out for testing
         // assert(circuitInputs.public_inputs.input_d[1] == OBSIDION_SCOPE, "scoped nullifier is not obsidion");
 
         //create the note for the user if all checks pass
         //transfer total is 0 for new registrations
-        //can include the timestamp, it will be asseted in the public call later.
+
         let new_auth_note = AuthNote::new(address, zk_id, true, epoch, 0);
         location.initialize_or_replace(new_auth_note).emit(encode_and_encrypt_note(
             &mut context,
@@ -145,7 +138,7 @@ pub contract ComplianceCheck {
 
         let root_hash = circuitInputs.public_inputs.input_a[0];
 
-        //enqueue the public epoch check
+        //enqueue the public epoch check, cerificate_root check and the zk_id for the mapping.
         ComplianceCheck::at(context.this_address())._check_epoch_and_root_and_zk_id(timestamp, root_hash, zk_id).enqueue(&mut context);
     }
 
@@ -153,9 +146,8 @@ pub contract ComplianceCheck {
     fn _calculate_epoch(timestamp: u64) -> u64 {
         timestamp / SECONDS_PER_MONTH
 
-        //include some rounding logic for the epoch
-        //fixed point math if there are rounding errors
-        //safe math noir or something
+        //TODO: this function will need some addition to ensure there are no rounding errors.
+        //Some safe math lib in noir or something
     }
 
     #[public]
@@ -165,7 +157,7 @@ pub contract ComplianceCheck {
         let epoch = _calculate_epoch(network_timestamp);
         
         //assert the network timestamp and user provided timestamp are within 10 minutes of each other
-        //60000 for testing, comment out for testing
+        //600 for testing, comment out for testing, due to sandbox issues
         // if (timestamp >= network_timestamp) {
         //     assert((network_timestamp + 600 as u64) >= timestamp, "timestamp is too far in the past");
         // } else {
@@ -175,10 +167,10 @@ pub contract ComplianceCheck {
         let network_epoch = _calculate_epoch(network_timestamp);
         let user_epoch = _calculate_epoch(timestamp);
 
+        //TODO: this will need to be uncommented when we have a real timestamp
         // assert(network_epoch == user_epoch, "epoch is not the same");
 
         //assert the root hash is valid
-        //change to the correct value
         assert(root_hash == storage.registry_root.read(), "root hash is not valid");
 
         //check the zk_id is valid
@@ -186,17 +178,16 @@ pub contract ComplianceCheck {
         assert(zk_id_exists == false, "zk_id has already been registered for this epoch");
 
         //store the zk_id in the epoch
-        //using user_epoch for network consistency
+        //using user_epoch as we are not using the network epoch in this POC
         storage.epoch_zk_id.at(user_epoch).at(zk_id).write(true);
     }
 
     #[private]
     fn authorize_transfer_private(_sender: AztecAddress, _from: AztecAddress, _amount: u128) {
 
-        //better way to get the epoch
-
 
         //check fetch the note for the user
+        //get the epoch from the note and assert later.
         let auth_note = storage.address_authorised.at(_sender).get_note().note;
 
         let note_epoch = auth_note.epoch;
@@ -217,9 +208,8 @@ pub contract ComplianceCheck {
             _sender,
             _sender,
         ));
-        //check the epoch from the note.
 
-        //check the provided timestamp is correct
+        //check the provided timestamp is correct, zk_id has been registered for this epoch
         ComplianceCheck::at(context.this_address())._check_epoch_and_zk_id(note_epoch, zk_id).enqueue(&mut context);
 
     }

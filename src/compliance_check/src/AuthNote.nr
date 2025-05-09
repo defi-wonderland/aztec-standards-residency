@@ -23,7 +23,7 @@ pub struct AuthNote {
     owner: AztecAddress,
     zk_id: Field,
     epoch: u64,
-    authenticated: bool,
+    authenticated: bool, //Do not think this is even needed
     transfer_total: u128,
     randomness: Field,
 }
