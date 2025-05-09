@@ -9,7 +9,7 @@ import { ComplianceCheckContract } from "../../artifacts/ComplianceCheck.js"
 import { getProofsFromFixture, getVkeysFromFixture } from "../helpers/fixtures/zkPassport/zkPassportFixtures.js"
 import { getSponsoredFeePaymentMethod, SponsoredFeePaymentMethod } from "../helpers/fee/sponsored_fee_payment.js"
 import { sendEmptyTxs } from "../helpers/utils.js"
-import { createAccountWithoutSecretKey, deployTokenWithInitialSupply, deployTokenWithMinter, logger } from "./utils.js"
+import { setupSandbox, createAccountWithoutSecretKey, deployTokenWithInitialSupply, deployTokenWithMinter, logger } from "./utils.js"
 
 
 //or maybe can grab from the packaged circuit on the server
@@ -45,13 +45,11 @@ describe("ZkPassport Proof Verification", () => {
 
   const EPOCH_TIME2 = 2628000*2;
 
-
-  const SANDBOX_URL = "http://localhost:8080";
   const INITIAL_SUPPLY = 1000000000000000000n
   const INITIAL_ADMIN_BALANCE = 1000000000000000n
 
   beforeAll(async () => {
-    pxe = createPXEClient(SANDBOX_URL); 
+    pxe = await setupSandbox();
     paymentMethod = await getSponsoredFeePaymentMethod(pxe);
 
     user = await createAccountWithoutSecretKey(pxe);
