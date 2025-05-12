@@ -3,7 +3,7 @@
         {
             "name": "ETH",
             "symbol": "ETH",
-            "address": "0x06f8c187b65c18c5d30e4345ffa105feaa201bbe2712ef8a8c17b6a235359f9b",
+            "address": "0x1d71fac0a1a428d33dbf03a06c32bea1ddd6fbeba4a03954d6d8142a340dc012",
             "decimals": 18,
             "minter": "contracts:dripper",
             "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
@@ -11,7 +11,7 @@
         {
             "name": "DAI",
             "symbol": "DAI",
-            "address": "0x10575e15cb7a09d6f34ffefac05e8bc717738622dd3e56c8e72b886a6d93ff84",
+            "address": "0x0ab29cbab3431d37afacd2a0265b86a58852e4828303859344236d384d7d31bd",
             "decimals": 9,
             "minter": "contracts:dripper",
             "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
@@ -19,13 +19,13 @@
         {
             "name": "USDC",
             "symbol": "USDC",
-            "address": "0x09a868460666e3e1919b500d5a05f5859bb18842c3220fa15727cdd8b97fd7a0",
+            "address": "0x1526d8bf5988bb4876c5c8aabfead22f4af8ee5a5fa4abe6caca537ae567fc0c",
             "decimals": 6,
             "minter": "contracts:dripper",
             "upgrade_authorizer": "0x157c95add81f3fd7248fdd084088a322926efc76fdbea3b25bac8330a0555fc6"
         }
     ],
     "dripper" : {
-        "address": "0x148fbbf17df911728c9a5fb324066548335be5df3d712846a60b9992c6c3a4a5"
+        "address": "0x15cb36d03b7eda6efe7a63a0a1c4d9a78f4c045c8edee8db2f346227c3fa1956"
     }
 }
