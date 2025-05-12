@@ -70,11 +70,11 @@ jobs:
           mkdir -p export/${{ env.PROJECT_NAME }}/current
           mkdir -p export/${{ env.PROJECT_NAME }}/historical
           
-          # if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
-          #   cp -r node_modules/${{ env.PROJECT_NAME }}/historical/* export/${{ env.PROJECT_NAME }}/historical/
-          # else
-          #   echo "No historical directory found, skipping copy"
-          # fi
+          if [ -d "node_modules/${{ env.PROJECT_NAME }}/historical" ]; then
+            cp -r node_modules/${{ env.PROJECT_NAME }}/historical/** export/${{ env.PROJECT_NAME }}/historical/
+          else
+            echo "No historical directory found, skipping copy"
+          fi
 
           cp -r dist/artifacts export/${{ env.PROJECT_NAME }}/current/
           cp -r target export/${{ env.PROJECT_NAME }}/current/
