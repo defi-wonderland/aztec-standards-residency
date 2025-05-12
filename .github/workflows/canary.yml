@@ -62,8 +62,9 @@ jobs:
       # 2. Copy historical versions from existing package to /historical
       # 3. Move this version's artifacts and circuits to historical/ as well.
       # 4. Move this version's artifacts and circuits to current/
-      # 5. README.md, and LICENSE to current/
-      # 6. Trim info from package.json
+      # 5. Copy deployments.json to current/
+      # 6. README.md, and LICENSE to current/
+      # 7. Trim info from package.json
       - name: Prepare files for release
         run: |
           VERSION="0.0.0-${GITHUB_SHA::8}"
@@ -78,6 +79,14 @@ jobs:
 
           cp -r dist/artifacts export/${{ env.PROJECT_NAME }}/current/
           cp -r target export/${{ env.PROJECT_NAME }}/current/
+
+          # Copy deployments.json if it exists
+          if [ -f "src/deployments.json" ]; then
+            cp src/deployments.json export/${{ env.PROJECT_NAME }}/current/
+          else
+            echo "src/deployments.json not found, skipping copy"
+          fi
+          
           cp -r export/${{ env.PROJECT_NAME }}/current export/${{ env.PROJECT_NAME }}/historical/$VERSION
 
           cp README.md export/${{ env.PROJECT_NAME }}/
