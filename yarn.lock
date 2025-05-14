@@ -15,7 +15,7 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@aztec/accounts@0.85.0":
+"@aztec/accounts@^0.85.0-alpha-testnet.9":
   version "0.85.0"
   resolved "https://registry.yarnpkg.com/@aztec/accounts/-/accounts-0.85.0.tgz#8b3b46fea61a07746ce16059fac4aaf82a3c48b6"
   integrity sha512-GB0xJaRuG6sXkUe318gwQ+iEm3SIjDaeptw2O4yC/Dvm7EuVEoe9dXYTX7cjILTR1Yf/9HXF/kDohJlrqRE2gA==
@@ -27,7 +27,7 @@
     "@aztec/stdlib" "0.85.0"
     tslib "^2.4.0"
 
-"@aztec/aztec.js@0.85.0":
+"@aztec/aztec.js@0.85.0", "@aztec/aztec.js@^0.85.0-alpha-testnet.9":
   version "0.85.0"
   resolved "https://registry.yarnpkg.com/@aztec/aztec.js/-/aztec.js-0.85.0.tgz#4ba3c60efe2c1a0eabaa27f6025f06c161624548"
   integrity sha512-MZbcaMyNjdSktbJ7BBQPJfasiEJwc80QZcuu+JR3kmGNTLJJ0ZFt2cn6VihJZu8Hxf7UTVUAm38JK0z/Y+ue1Q==
@@ -132,7 +132,7 @@
   dependencies:
     tslib "^2.4.0"
 
-"@aztec/noir-contracts.js@0.85.0":
+"@aztec/noir-contracts.js@^0.85.0-alpha-testnet.9":
   version "0.85.0"
   resolved "https://registry.yarnpkg.com/@aztec/noir-contracts.js/-/noir-contracts.js-0.85.0.tgz#48fbe1290c5b7a0cfcd3784594259d6757f89da6"
   integrity sha512-S1udPVVe71YOSuzP7w83jO+sJOtRp0Q56w0X9KIKmt7SnPCGOx7+q+rglDcNM7LdXsao+UHNSZBmy5lsC8WsUg==
