@@ -3,11 +3,35 @@
 Aztec Standards is a compilation of reusable, standardized contracts for the Aztec Network. It provides a foundation of token primitives and utilities supporting both private and public operations, enabling developers to build privacy-preserving applications.
 
 ## Table of Contents
+- [Dripper](#dripper)
 - [Token Contract](#token-contract)
 - [Future Contracts](#future-contracts)
 
+## Dripper
+The `Dripper` contract provides a simple faucet for minting tokens into private or public balances. Anyone can invoke the functions below to request tokens for testing or development.
+
+### Public Functions
+```rust
+/// @notice Mints tokens into the public balance of the caller
+/// @dev Caller obtains `amount` tokens in their public balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[public]
+fn drip_to_public(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
+
+### Private Functions
+```rust
+/// @notice Mints tokens into the private balance of the caller
+/// @dev Caller obtains `amount` tokens in their private balance
+/// @param token_address The address of the token contract
+/// @param amount The amount of tokens to mint (u64, converted to u128 internally)
+#[private]
+fn drip_to_private(token_address: AztecAddress, amount: u64) { /* ... */ }
+```
+
 ## Token Contract
-The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec’s confidentiality features.
+The `Token` contract implements an ERC-20-like token with Aztec-specific privacy extensions. It supports transfers and interactions explicitly through private balances and public balances, offering full coverage of Aztec's confidentiality features.
 
 ### AIP-20: Aztec Token Standard
 We published the AIP-20 Aztec Token Standard in our forum: https://forum.aztec.network/t/request-for-comments-aip-20-aztec-token-standard/7737
@@ -21,6 +45,7 @@ Feel free to review and discuss the specification there.
 - `public_balances: Map<AztecAddress, u128>`: Public balances per account.
 - `total_supply: u128`: Total token supply.
 - `minter: AztecAddress`: Authorized minter address (if set).
+- `upgrade_authority: AztecAddress`: Address allowed to perform contract upgrades (zero address if not upgradeable).
 
 ### Initializer Functions
 ```rust
@@ -31,6 +56,7 @@ Feel free to review and discuss the specification there.
 /// @param decimals The number of decimals of the token
 /// @param initial_supply The initial supply of the token
 /// @param to The address to mint the initial supply to
+/// @param upgrade_authority The address of the upgrade authority (zero if not upgradeable)
 #[public]
 #[initializer]
 fn constructor_with_initial_supply(
@@ -39,6 +65,7 @@ fn constructor_with_initial_supply(
     decimals: u8,
     initial_supply: u128,
     to: AztecAddress,
+    upgrade_authority: AztecAddress,
 ) { /* ... */ }
 ```
 
@@ -48,6 +75,7 @@ fn constructor_with_initial_supply(
 /// @param symbol The symbol of the token
 /// @param decimals The number of decimals of the token
 /// @param minter The address of the minter
+/// @param upgrade_authority The address of the upgrade authority (zero if not upgradeable)
 #[public]
 #[initializer]
 fn constructor_with_minter(
@@ -55,6 +83,7 @@ fn constructor_with_minter(
     symbol: str<31>,
     decimals: u8,
     minter: AztecAddress,
+    upgrade_authority: AztecAddress,
 ) { /* ... */ }
 ```
 
@@ -87,7 +116,7 @@ fn transfer_private_to_public_with_commitment(
     to: AztecAddress,
     amount: u128,
     nonce: Field,
-) -> PartialUintNote { /* ... */ }
+) -> Field { /* ... */ }
 
 /// @notice Transfer tokens from private balance to private balance
 /// @dev Spends notes, emits a new note (UintNote) with any remaining change, and sends a note to the recipient
@@ -106,14 +135,14 @@ fn transfer_private_to_private(
 /// @notice Transfer tokens from private balance to the recipient commitment (recipient must create a commitment first)
 /// @dev Spends notes, emits a new note (UintNote) with any remaining change, and enqueues a public call
 /// @param from The address of the sender
+/// @param commitment The Field representing the commitment (privacy entrance that the recipient shares with the sender)
 /// @param amount The amount of tokens to transfer
-/// @param commitment The partial note representing the commitment (privacy entrance that the recipient shares with the sender)
 /// @param nonce The nonce used for authwitness
 #[private]
 fn transfer_private_to_commitment(
     from: AztecAddress,
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
     nonce: Field,
 ) { /* ... */ }
 
@@ -140,7 +169,7 @@ fn transfer_public_to_private(
 fn initialize_transfer_commitment(
     from: AztecAddress,
     to: AztecAddress,
-) -> PartialUintNote { /* ... */ }
+) -> Field { /* ... */ }
 
 /// @notice Recursively subtracts balance from commitment
 /// @dev Used to subtract balances that exceed the max notes limit
@@ -183,28 +212,34 @@ fn transfer_public_to_public(
     nonce: Field,
 ) { /* ... */ }
 
+/// @notice Upgrades the contract to a new contract class id
+/// @dev Only callable by the `upgrade_authority` and effective after the upgrade delay
+/// @param new_contract_class_id The new contract class id
+#[public]
+fn upgrade_contract(new_contract_class_id: Field) { /* ... */ }
+
 /// @notice Finalizes a transfer of token `amount` from public balance of `from` to a commitment of `to`
 /// @dev The transfer must be prepared by calling `initialize_transfer_commitment` first and the resulting
 /// `commitment` must be passed as an argument to this function
 /// @param from The address of the sender
+/// @param commitment The Field representing the commitment (privacy entrance)
 /// @param amount The amount of tokens to transfer
-/// @param commitment The partial note representing the commitment (privacy entrance)
 /// @param nonce The nonce used for authwitness
 #[public]
 fn transfer_public_to_commitment(
     from: AztecAddress,
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
     nonce: Field,
 ) { /* ... */ }
 
 /// @notice Stores a partial note in storage
 /// @dev Used to store the commitment (privacy entrance)
-/// @param slot The partial note to store
+/// @param commitment The partial note to store
 #[public]
 #[internal]
 fn store_commitment_in_storage_internal(
-    slot: PartialUintNote,
+    commitment: PartialUintNote,
 ) { /* ... */ }
 
 /// @notice Increases the public balance of `to` by `amount`
@@ -249,12 +284,12 @@ fn mint_to_public(
 
 /// @notice Finalizes a mint to a commitment
 /// @dev Finalizes a mint to a commitment and updates the total supply
+/// @param commitment The Field representing the mint commitment (privacy entrance)
 /// @param amount The amount of tokens to mint
-/// @param commitment The partial note representing the mint commitment (privacy entrance)
 #[public]
 fn mint_to_commitment(
+    commitment: Field,
     amount: u128,
-    commitment: PartialUintNote,
 ) { /* ... */ }
 ```
 
@@ -271,6 +306,24 @@ fn balance_of_public(owner: AztecAddress) -> u128 { /* ... */ }
 #[public]
 #[view]
 fn total_supply() -> u128 { /* ... */ }
+
+/// @notice Returns the name of the token
+/// @return The name of the token
+#[public]
+#[view]
+fn name() -> str<31> { /* ... */ }
+
+/// @notice Returns the symbol of the token
+/// @return The symbol of the token
+#[public]
+#[view]
+fn symbol() -> str<31> { /* ... */ }
+
+/// @notice Returns the decimals of the token
+/// @return The decimals of the token
+#[public]
+#[view]
+fn decimals() -> u8 { /* ... */ }
 ```
 
 ### Utility Functions
