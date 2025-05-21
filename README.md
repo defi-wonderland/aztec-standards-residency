@@ -1,5 +1,13 @@
 # Aztec Standards
 
+> ⚠️ **DEPRECATED – DO NOT USE**
+>
+> This repository is no longer maintained and is **deprecated**.
+>
+> It may contain **outdated, insecure, or vulnerable code** and should **not** be used in production or as a dependency in any project.
+>
+> The repository is retained solely for historical reference. No support, updates, or security patches will be provided.
+
 Aztec Standards is a compilation of reusable, standardized contracts for the Aztec Network. It provides a foundation of token primitives and utilities supporting both private and public operations, enabling developers to build privacy-preserving applications.
 
 ## Table of Contents
